@@ -13,7 +13,7 @@ classifiers = [
 
 setup(name='split_folders',
       version='0.1.0',
-      description='Split folders with files (e.g. images) into train, validation and test (dataset) folders.',
+      description='🗂 Split folders with files (e.g. images) into training, validation and test (dataset) folders.',
       long_description=long_description,
       long_description_content_type="text/markdown",
       url='https://github.com/jfilter/split-folders',
@@ -22,4 +22,4 @@ setup(name='split_folders',
       license='MIT',
       packages=['split_folders'],
       classifiers=classifiers,
-      zip_safe=False)
+      scripts=['bin/split_folders'])

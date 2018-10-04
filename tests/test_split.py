@@ -26,7 +26,7 @@ def test_split_fixed():
 
     shutil.rmtree(output_dir, ignore_errors=True)
 
-    split_folders.fixed(input_dir, output_dir)
+    split_folders.fixed(input_dir, output_dir, fixed=(2, 2))
 
     # ensure the number of pics is the same
     a = len(list(pathlib.Path(input_dir).glob('*.jpg')))
