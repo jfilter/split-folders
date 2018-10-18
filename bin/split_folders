@@ -18,6 +18,8 @@ parser.add_argument('--ratio',
 parser.add_argument('--fixed',
                     nargs='+', type=int,
                     help="set the absolute number of items per validation/test set. The remaining items get to the training. e.g. for train/val/test `100 100` or for train/val `100`")
+parser.add_argument('--oversample', action="store_true",
+                    help="enable oversampling of imbalanced datasets")
 
 args = parser.parse_args()
 
@@ -26,6 +28,6 @@ if args.ratio:
 else:
     if args.fixed:
         split_folders.fixed(args.input, args.output,
-                            args.seed, args.fixed)
+                            args.seed, args.fixed, args.oversample)
     else:
         print('Please specify either your `--ratio` or your `--fixed` number of items for the split. see -h for more help.')

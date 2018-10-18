@@ -58,24 +58,42 @@ def ratio(input, output="output", seed=1337, ratio=(.8, .1, .1)):
         split_class_dir_ratio(class_dir, output, ratio, seed)
 
 
-def fixed(input, output="output", seed=1337, fixed=(100, 100)):
-    if isinstance(fixed, int):  # convert to make it easier
+def fixed(input, output="output", seed=1337, fixed=(100, 100), oversample=False):
+    # make sure its reproducible
+    if isinstance(fixed, int):
         fixed = (fixed)
 
     assert len(fixed) in (1, 2)
 
-    for class_dir in list_dirs(input):
-        split_class_dir_fixed(class_dir, output, fixed, seed)
+    dirs = list_dirs(input)
+    lens = []
+    for class_dir in dirs:
+        lens.append(split_class_dir_fixed(class_dir, output, fixed, seed))
+
+    if not oversample:
+        return
+
+    max_len = max(lens)
+
+    for length, class_dir in zip(lens, dirs):
+        class_name = path.split(class_dir)[1]
+        full_path = path.join(output, 'train', class_name)
+        train_files = list_files(full_path)
+        for i in range(max_len - length):
+            f_orig = random.choice(train_files)
+            new_name = f_orig.stem + '_' + str(i) + f_orig.suffix
+            f_dest = f_orig.with_name(new_name)
+            shutil.copy2(f_orig, f_dest)
 
 
 def setup_files(class_dir, seed):
     """Returns shuffled files
     """
+    # make sure its reproducible
     random.seed(seed)
 
     files = list_files(class_dir)
 
-    # make sure its reproducible
     files.sort()
     random.shuffle(files)
     return files
@@ -93,6 +111,7 @@ def split_class_dir_fixed(class_dir, output, fixed, seed):
 
     li = split_files(files, split_train, split_val, len(fixed) == 2)
     copy_files(li, class_dir, output)
+    return len(files)
 
 
 def split_class_dir_ratio(class_dir, output, ratio, seed):
