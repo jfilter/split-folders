@@ -49,7 +49,7 @@ This should get you started to do some serious deep learning on your data. [Read
 -   The data gets split before it gets shuffled.
 -   A [seed](https://docs.python.org/3/library/random.html#random.seed) lets you reproduce the splits.
 -   Works on any file types.
--   Allows randomized [oversampling](https://en.wikipedia.org/wiki/Oversampling_and_undersampling_in_data_analysis) for unbalanced datasets.
+-   Allows randomized [oversampling](https://en.wikipedia.org/wiki/Oversampling_and_undersampling_in_data_analysis) for imbalanced datasets.
 -   (Should) work on all operating systems.
 
 ## Install
