@@ -47,7 +47,7 @@ def list_dirs(directory):
 def list_files(directory):
     """Returns all files in a given directory
     """
-    return [f for f in pathlib.Path(directory).iterdir() if f.is_file()]
+    return [f for f in pathlib.Path(directory).iterdir() if f.is_file() and not f.name.startswith('.')]
 
 
 def ratio(input, output="output", seed=1337, ratio=(.8, .1, .1)):
