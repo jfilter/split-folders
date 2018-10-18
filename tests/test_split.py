@@ -15,8 +15,8 @@ def test_split_ratio():
     split_folders.ratio(input_dir, output_dir)
 
     # ensure the number of pics is the same
-    a = len(list(pathlib.Path(input_dir).glob('*.jpg')))
-    b = len(list(pathlib.Path(output_dir).glob('*.jpg')))
+    a = len(list(pathlib.Path(input_dir).glob('**/*.jpg')))
+    b = len(list(pathlib.Path(output_dir).glob('**/*.jpg')))
     assert a == b
 
 
@@ -29,6 +29,6 @@ def test_split_fixed():
     split_folders.fixed(input_dir, output_dir, fixed=(2, 2))
 
     # ensure the number of pics is the same
-    a = len(list(pathlib.Path(input_dir).glob('*.jpg')))
-    b = len(list(pathlib.Path(output_dir).glob('*.jpg')))
+    a = len(list(pathlib.Path(input_dir).glob('**/*.jpg')))
+    b = len(list(pathlib.Path(output_dir).glob('**/*.jpg')))
     assert a == b
