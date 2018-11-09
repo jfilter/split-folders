@@ -130,7 +130,7 @@ def split_files(files, split_train, split_val, use_test):
     """Splits the files along the provided indices
     """
     files_train = files[:split_train]
-    files_val = files[split_train:split_val]
+    files_val = files[split_train:split_val] if use_test else files[split_train:]
 
     li = [(files_train, 'train'), (files_val, 'val')]
 
