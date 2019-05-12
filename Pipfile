@@ -5,9 +5,10 @@ name = "pypi"
 
 [dev-packages]
 pytest = "*"
+pylint = "*"
 
 [requires]
 python_version = "3.6"
 
 [packages]
-split-folders = { editable = true, path = "." }
+split-folders = {editable = true,path = "."}
