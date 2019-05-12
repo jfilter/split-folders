@@ -104,7 +104,8 @@ def split_class_dir_fixed(class_dir, output, fixed, seed):
     """
     files = setup_files(class_dir, seed)
 
-    assert len(files) > sum(fixed)
+    if not len(files) > sum(fixed):
+        raise ValueError(f'The number of samples in class "{class_dir.stem}" are too few. There are only {len(files)} samples available but your fixed parameter {fixed} requires at least {sum(fixed)} files. You may want to split your classes by ratio.')
 
     split_train = len(files) - sum(fixed)
     split_val = split_train + fixed[0]
