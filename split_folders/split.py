@@ -36,7 +36,12 @@ import pathlib
 import random
 import shutil
 from os import path, listdir
-
+import importlib
+tqdm_exists = importlib.util.find_spec("tqdm")
+if tqdm_exists:
+    from tqdm import tqdm
+else:
+    print("To visualize progress, run : pip install tqdm")
 
 def list_dirs(directory):
     """Returns all directories in a given directory
@@ -76,6 +81,7 @@ def fixed(input, output="output", seed=1337, fixed=(100, 100), oversample=False)
     max_len = max(lens)
 
     for length, class_dir in zip(lens, dirs):
+        class_dir = str(class_dir)
         class_name = path.split(class_dir)[1]
         full_path = path.join(output, 'train', class_name)
         train_files = list_files(full_path)
@@ -83,7 +89,7 @@ def fixed(input, output="output", seed=1337, fixed=(100, 100), oversample=False)
             f_orig = random.choice(train_files)
             new_name = f_orig.stem + '_' + str(i) + f_orig.suffix
             f_dest = f_orig.with_name(new_name)
-            shutil.copy2(f_orig, f_dest)
+            shutil.copy2(str(f_orig), str(f_dest))
 
 
 def setup_files(class_dir, seed):
@@ -105,7 +111,8 @@ def split_class_dir_fixed(class_dir, output, fixed, seed):
     files = setup_files(class_dir, seed)
 
     if not len(files) > sum(fixed):
-        raise ValueError(f'The number of samples in class "{class_dir.stem}" are too few. There are only {len(files)} samples available but your fixed parameter {fixed} requires at least {sum(fixed)} files. You may want to split your classes by ratio.')
+        errorstr = "The number of samples in class "+str(class_dir.stem)+" are too few. There are only "+str(len(files))+" samples available but your fixed parameter "+str(fixed)+" requires at least "+str(sum(fixed))+" files. You may want to split your classes by ratio."
+        raise ValueError(errorstr)
 
     split_train = len(files) - sum(fixed)
     split_val = split_train + fixed[0]
@@ -146,11 +153,17 @@ def copy_files(files_type, class_dir, output):
     """Copies the files from the input folder to the output folder
     """
     # get the last part within the file
+    class_dir = str(class_dir)
+    output = str(output)
     class_name = path.split(class_dir)[1]
     for (files, folder_type) in files_type:
         full_path = path.join(output, folder_type, class_name)
-
+        print("Currently copying: ",folder_type)
         pathlib.Path(full_path).mkdir(
             parents=True, exist_ok=True)
-        for f in files:
-            shutil.copy2(f, full_path)
+        if tqdm_exists:
+            for f in tqdm(files):
+                shutil.copy2(str(f), str(full_path))
+        else:
+            for f in files:
+                shutil.copy2(str(f), str(full_path))
