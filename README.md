@@ -64,6 +64,8 @@ You you can use `split_folders` as Python module or as a Command Line Interface 
 
 If your datasets is balanced (each class has the same number of samples), choose `ratio` otherwise `fixed`. NB: oversampling is turned off by default.
 
+Run ```pip install tqdm``` for progress bar visualization.
+
 ### Module
 
 ```python
@@ -92,6 +94,23 @@ Options:
     --oversample enable oversampling of imbalanced datasets, works only with --fixed.
 Example:
     split_folders imgs --ratio .8 .1 .1
+    
+```
+
+### python -m
+
+```
+Usage : 
+    python -m split_folders -i <folder_with_images> -o <output> -r <ratio> -f <fixed> -s <seed> -os <oversample>
+Options:
+    Same as above with few minor additions.
+    -r => Ratio. : Default is `.8 .1 .1`, just pass -r for default values.
+    -f => Fixed  : Default is `100 100`, just pass -f for default values.
+Examples:
+    1) python -m split_folders -i imgs -f 2 2 -os      [In fixed mode and adds oversampling]
+    2) python -m split_folders -i imgs -o image_output -r .8 .2 -s 1923     [In ratio mode, outputs to image_output and sets seed to 1923]
+    3) python -m split_folders -i imgs -r       [Uses the default ratio]
+    4) python -m split_folders -i imgs -f       [Uses the default fixed values]
 ```
 
 ## License
