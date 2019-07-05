@@ -51,7 +51,8 @@ def list_files(directory):
 
 
 def ratio(input, output="output", seed=1337, ratio=(.8, .1, .1)):
-    assert sum(ratio) == 1
+    # make up for some impression
+    assert round(sum(ratio), 5) == 1
     assert len(ratio) in (2, 3)
 
     for class_dir in list_dirs(input):
