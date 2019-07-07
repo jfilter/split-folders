@@ -35,7 +35,14 @@ into this resulting format:
 import pathlib
 import random
 import shutil
-from os import path, listdir
+from os import path
+
+tqdm_is_installed = False
+try:
+    from tqdm import tqdm
+    tqdm_is_installed = True
+except ImportError:
+    print(f"If you want a progress bar, please install `tqdm` module")
 
 
 def list_dirs(directory):
@@ -94,6 +101,13 @@ def setup_files(class_dir, seed):
     random.seed(seed)
 
     files = list_files(class_dir)
+
+    if tqdm_is_installed:
+        global t
+        t = tqdm(total=len(files),
+                 desc="Copying files",
+                 unit=' files',
+                 leave=True)
 
     files.sort()
     random.shuffle(files)
@@ -154,4 +168,8 @@ def copy_files(files_type, class_dir, output):
         pathlib.Path(full_path).mkdir(
             parents=True, exist_ok=True)
         for f in files:
+            if tqdm_is_installed:
+                t.update()
             shutil.copy2(f, full_path)
+        if tqdm_is_installed:
+            t.close()
