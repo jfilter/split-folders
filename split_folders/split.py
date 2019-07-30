@@ -70,7 +70,9 @@ def ratio(input, output="output", seed=1337, ratio=(0.8, 0.1, 0.1)):
         prog_bar = tqdm(desc=f"Copying files", unit=" files")
 
     for class_dir in list_dirs(input):
-        split_class_dir_ratio(class_dir, output, ratio, seed, prog_bar)
+        split_class_dir_ratio(
+            class_dir, output, ratio, seed, prog_bar if tqdm_is_installed else None
+        )
 
     if tqdm_is_installed:
         prog_bar.close()
@@ -89,7 +91,11 @@ def fixed(input, output="output", seed=1337, fixed=(100, 100), oversample=False)
     dirs = list_dirs(input)
     lens = []
     for class_dir in dirs:
-        lens.append(split_class_dir_fixed(class_dir, output, fixed, seed, prog_bar))
+        lens.append(
+            split_class_dir_fixed(
+                class_dir, output, fixed, seed, prog_bar if tqdm_is_installed else None
+            )
+        )
 
     if tqdm_is_installed:
         prog_bar.close()
@@ -99,9 +105,12 @@ def fixed(input, output="output", seed=1337, fixed=(100, 100), oversample=False)
 
     max_len = max(lens)
 
-    for length, class_dir in tqdm(
-        zip(lens, dirs), desc="Oversampling", unit=" classes"
-    ):
+    iteration = zip(lens, dirs)
+
+    if tqdm_is_installed:
+        iteration = tqdm(iteration, desc="Oversampling", unit=" classes")
+
+    for length, class_dir in iteration:
         class_name = path.split(class_dir)[1]
         full_path = path.join(output, "train", class_name)
         train_files = list_files(full_path)
