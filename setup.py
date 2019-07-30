@@ -14,6 +14,7 @@ classifiers = [
 setup(
     name="split_folders",
     version="0.3.0",
+    python_requires=">=3.6",
     description="🗂 Split folders with files (e.g. images) into training, validation and test (dataset) folders.",
     long_description=long_description,
     long_description_content_type="text/markdown",
