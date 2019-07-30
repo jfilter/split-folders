@@ -4,11 +4,9 @@ python:
     - "3.6"
     - "3.7-dev"
 
-matrix:
-    include:
-        - env: variant=1
-        - env: variant=2
-    fast_finish: true
+env:
+    - variant=1
+    - variant=2
 
 # command to install dependencies
 install:
