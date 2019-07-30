@@ -4,9 +4,16 @@ python:
     - "3.6"
     - "3.7-dev"
 
+matrix:
+    include:
+        - env: variant=1
+        - env: variant=2
+    fast_finish: true
+
 # command to install dependencies
 install:
-    - pip install .
+    - if [ "$variant" = "1" ]; then pip install .; fi
+    - if [ "$variant" = "2" ]; then pip install . tqdm; fi
 
 script: pytest
 
