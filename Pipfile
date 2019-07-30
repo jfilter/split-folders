@@ -6,9 +6,13 @@ name = "pypi"
 [dev-packages]
 pytest = "*"
 pylint = "*"
+black = "*"
 
 [requires]
 python_version = "3.6"
 
 [packages]
 split-folders = {editable = true,path = "."}
+
+[pipenv]
+allow_prereleases = true
