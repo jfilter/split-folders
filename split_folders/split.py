@@ -37,12 +37,12 @@ import random
 import shutil
 from os import path
 
-tqdm_is_installed = False
 try:
     from tqdm import tqdm
+
     tqdm_is_installed = True
 except ImportError:
-    print(f"If you want a progress bar, please install `tqdm` module")
+    tqdm_is_installed = False
 
 
 def list_dirs(directory):
@@ -62,8 +62,14 @@ def ratio(input, output="output", seed=1337, ratio=(.8, .1, .1)):
     assert round(sum(ratio), 5) == 1
     assert len(ratio) in (2, 3)
 
+    if tqdm_is_installed:
+        prog_bar = tqdm(desc=f"Copying files", unit=" files")
+
     for class_dir in list_dirs(input):
-        split_class_dir_ratio(class_dir, output, ratio, seed)
+        split_class_dir_ratio(class_dir, output, ratio, seed, prog_bar)
+
+    if tqdm_is_installed:
+        prog_bar.close()
 
 
 def fixed(input, output="output", seed=1337, fixed=(100, 100), oversample=False):
@@ -73,17 +79,25 @@ def fixed(input, output="output", seed=1337, fixed=(100, 100), oversample=False)
 
     assert len(fixed) in (1, 2)
 
+    if tqdm_is_installed:
+        prog_bar = tqdm(desc=f"Copying files", unit=" files")
+
     dirs = list_dirs(input)
     lens = []
     for class_dir in dirs:
-        lens.append(split_class_dir_fixed(class_dir, output, fixed, seed))
+        lens.append(split_class_dir_fixed(class_dir, output, fixed, seed, prog_bar))
+
+    if tqdm_is_installed:
+        prog_bar.close()
 
     if not oversample:
         return
 
     max_len = max(lens)
 
-    for length, class_dir in zip(lens, dirs):
+    for length, class_dir in tqdm(
+        zip(lens, dirs), desc="Oversampling", unit=" classes"
+    ):
         class_name = path.split(class_dir)[1]
         full_path = path.join(output, 'train', class_name)
         train_files = list_files(full_path)
@@ -102,19 +116,12 @@ def setup_files(class_dir, seed):
 
     files = list_files(class_dir)
 
-    if tqdm_is_installed:
-        global t
-        t = tqdm(total=len(files),
-                 desc="Copying files",
-                 unit=' files',
-                 leave=True)
-
     files.sort()
     random.shuffle(files)
     return files
 
 
-def split_class_dir_fixed(class_dir, output, fixed, seed):
+def split_class_dir_fixed(class_dir, output, fixed, seed, prog_bar):
     """Splits one very class folder
     """
     files = setup_files(class_dir, seed)
@@ -126,11 +133,11 @@ def split_class_dir_fixed(class_dir, output, fixed, seed):
     split_val = split_train + fixed[0]
 
     li = split_files(files, split_train, split_val, len(fixed) == 2)
-    copy_files(li, class_dir, output)
+    copy_files(li, class_dir, output, prog_bar)
     return len(files)
 
 
-def split_class_dir_ratio(class_dir, output, ratio, seed):
+def split_class_dir_ratio(class_dir, output, ratio, seed, prog_bar):
     """Splits one very class folder
     """
     files = setup_files(class_dir, seed)
@@ -139,7 +146,7 @@ def split_class_dir_ratio(class_dir, output, ratio, seed):
     split_val = split_train + int(ratio[1] * len(files))
 
     li = split_files(files, split_train, split_val, len(ratio) == 3)
-    copy_files(li, class_dir, output)
+    copy_files(li, class_dir, output, prog_bar)
 
 
 def split_files(files, split_train, split_val, use_test):
@@ -157,7 +164,7 @@ def split_files(files, split_train, split_val, use_test):
     return li
 
 
-def copy_files(files_type, class_dir, output):
+def copy_files(files_type, class_dir, output, prog_bar):
     """Copies the files from the input folder to the output folder
     """
     # get the last part within the file
@@ -168,8 +175,6 @@ def copy_files(files_type, class_dir, output):
         pathlib.Path(full_path).mkdir(
             parents=True, exist_ok=True)
         for f in files:
-            if tqdm_is_installed:
-                t.update()
+            if not prog_bar is None:
+                prog_bar.update()
             shutil.copy2(f, full_path)
-        if tqdm_is_installed:
-            t.close()

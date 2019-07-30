@@ -58,6 +58,12 @@ This should get you started to do some serious deep learning on your data. [Read
 pip install split-folders
 ```
 
+If you are working with a large amount of files, you may want to get a progress bar. Install [tqdm](https://github.com/tqdm/tqdm) in order to get updates when copying the files into the new folders.
+
+```bash
+pip install split-folders tqdm
+```
+
 ## Usage
 
 You you can use `split_folders` as Python module or as a Command Line Interface (CLI).
