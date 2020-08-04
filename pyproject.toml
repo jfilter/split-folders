@@ -1,0 +1,35 @@
+
+[tool.poetry]
+name = "split_folders"
+version = "0.3.1"
+description = "Split folders with files (e.g. images) into training, validation and test (dataset) folders."
+license = "MIT"
+authors = ["Johannes Filter <hi@jfilter.de>"]
+repository = "https://github.com/jfilter/split-folders"
+keywords = ["machine-learning", "training-validation-test", "datasets"]
+classifiers = [
+    "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "License :: OSI Approved :: MIT License",
+    "Topic :: Utilities",
+]
+readme = "README.md"
+
+[tool.poetry.scripts]
+split_folders = "split_folders.cli:run"
+splitfolders = "split_folders.cli:run"
+split-folders = "split_folders.cli:run"
+
+[tool.poetry.dependencies]
+python = ">=3.6"
+
+[tool.poetry.dev-dependencies]
+pytest = "*"
+pylint = "*"
+black = {version = "*", allow-prereleases = true, python = ">=3.6"}
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"

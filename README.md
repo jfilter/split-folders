@@ -100,6 +100,17 @@ Example:
     split_folders imgs --ratio .8 .1 .1
 ```
 
+## Development
+
+Install and use [poetry](https://python-poetry.org/).
+
+## Contributing
+
+If you have a **question**, found a **bug** or want to propose a new **feature**, have a look at the [issues page](https://github.com/jfilter/split-folders/issues).
+
+**Pull requests** are especially welcomed when they fix bugs or improve the code quality.
+
+
 ## License
 
 MIT.
