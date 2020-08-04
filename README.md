@@ -1,8 +1,8 @@
 # `split-folders` [![Build Status](https://travis-ci.com/jfilter/split-folders.svg?branch=master)](https://travis-ci.com/jfilter/split-folders) [![PyPI](https://img.shields.io/pypi/v/split-folders.svg)](https://pypi.org/project/split-folders/) [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/split-folders.svg)](https://pypi.org/project/split-folders/)
 
-Split folders with files (e.g. images) into train, validation and test (dataset) folders.
+Split folders with files (e.g. images) into **train**, **validation** and **test** (dataset) folders.
 
-The input folder shoud have the following format:
+The input folder should have the following format:
 
 ```
 input/
@@ -45,11 +45,12 @@ output/
 
 This should get you started to do some serious deep learning on your data. [Read here](https://stats.stackexchange.com/questions/19048/what-is-the-difference-between-test-set-and-validation-set) why it's a good idea to split your data intro three different sets.
 
--   You may only split into a training and validation set.
--   The data gets split before it gets shuffled.
--   A [seed](https://docs.python.org/3/library/random.html#random.seed) lets you reproduce the splits.
+-   Split files into a training set and a validation set (and optionally a test set).
 -   Works on any file types.
+-   The files get shuffled.
+-   A [seed](https://docs.python.org/3/library/random.html#random.seed) makes splits reproducible.
 -   Allows randomized [oversampling](https://en.wikipedia.org/wiki/Oversampling_and_undersampling_in_data_analysis) for imbalanced datasets.
+-   Optionally group files by prefix.
 -   (Should) work on all operating systems.
 
 ## Install
@@ -58,7 +59,7 @@ This should get you started to do some serious deep learning on your data. [Read
 pip install split-folders
 ```
 
-If you are working with a large amount of files, you may want to get a progress bar. Install [tqdm](https://github.com/tqdm/tqdm) in order to get updates when copying the files into the new folders.
+If you are working with a large amount of files, you may want to get a progress bar. Install [tqdm](https://github.com/tqdm/tqdm) in order to get visual updates for copying files.
 
 ```bash
 pip install split-folders tqdm
@@ -77,27 +78,33 @@ import splitfolders
 
 # Split with a ratio.
 # To only split into training and validation set, set a tuple to `ratio`, i.e, `(.8, .2)`.
-splitfolders.ratio('input_folder', output="output", seed=1337, ratio=(.8, .1, .1)) # default values
+splitfolders.ratio("input_folder", output="output", seed=1337, ratio=(.8, .1, .1), group_prefix=None) # default values
 
 # Split val/test with a fixed number of items e.g. 100 for each set.
 # To only split into training and validation set, use a single number to `fixed`, i.e., `10`.
-splitfolders.fixed('input_folder', output="output", seed=1337, fixed=(100, 100), oversample=False) # default values
+splitfolders.fixed("input_folder", output="output", seed=1337, fixed=(100, 100), oversample=False, group_prefix=None) # default values
 ```
+
+Occasionally you may have things that comprise more than a single file (e.g. picture (.png) + annotation (.txt)).
+`splitfolders` lets you split files into equally-sized groups based on their prefix.
+Set `group_prefix` to the length of the group (e.g. `2`).
+But now *all* files should be part of groups.
 
 ### CLI
 
 ```
 Usage:
-    splitfolders [--output] [--ratio] [--fixed] [--seed] [--oversample] folder_with_images
+    splitfolders [--output] [--ratio] [--fixed] [--seed] [--oversample] [--group_prefix] folder_with_images
 Options:
-    --output     path to the output folder. defaults to `output`. Get created if non-existent.
-    --ratio      the ratio to split. e.g. for train/val/test `.8 .1 .1` or for train/val `.8 .2`.
-    --fixed      set the absolute number of items per validation/test set. The remaining items constitute
-                 the training set. e.g. for train/val/test `100 100` or for train/val `100`.
-    --seed       set seed value for shuffling the items. defaults to 1337.
-    --oversample enable oversampling of imbalanced datasets, works only with --fixed.
+    --output        path to the output folder. defaults to `output`. Get created if non-existent.
+    --ratio         the ratio to split. e.g. for train/val/test `.8 .1 .1` or for train/val `.8 .2`.
+    --fixed         set the absolute number of items per validation/test set. The remaining items constitute
+                    the training set. e.g. for train/val/test `100 100` or for train/val `100`.
+    --seed          set seed value for shuffling the items. defaults to 1337.
+    --oversample    enable oversampling of imbalanced datasets, works only with --fixed.
+    --group_prefix  split files into equally-sized groups based on their prefix
 Example:
-    splitfolders --ratio .8 .1 .1 imgs
+    splitfolders --ratio .8 .1 .1 folder_with_images
 ```
 
 You may use `splitfolders`, `split_folders` or `split-folders`.
@@ -115,4 +122,4 @@ If you have a **question**, found a **bug** or want to propose a new **feature**
 
 ## License
 
-MIT.
+MIT

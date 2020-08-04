@@ -6,7 +6,7 @@ description = "Split folders with files (e.g. images) into training, validation 
 license = "MIT"
 authors = ["Johannes Filter <hi@jfilter.de>"]
 repository = "https://github.com/jfilter/split-folders"
-keywords = ["machine-learning", "training-validation-test", "datasets"]
+keywords = ["machine-learning", "training-validation-test", "datasets", "folders"]
 classifiers = [
     "Programming Language :: Python :: 3.6",
     "Programming Language :: Python :: 3.7",
