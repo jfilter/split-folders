@@ -88,7 +88,7 @@ splitfolders.fixed('input_folder', output="output", seed=1337, fixed=(100, 100),
 
 ```
 Usage:
-    splitfolders folder_with_images [--output] [--ratio] [--fixed] [--seed] [--oversample]
+    splitfolders [--output] [--ratio] [--fixed] [--seed] [--oversample] folder_with_images
 Options:
     --output     path to the output folder. defaults to `output`. Get created if non-existent.
     --ratio      the ratio to split. e.g. for train/val/test `.8 .1 .1` or for train/val `.8 .2`.
@@ -97,7 +97,7 @@ Options:
     --seed       set seed value for shuffling the items. defaults to 1337.
     --oversample enable oversampling of imbalanced datasets, works only with --fixed.
 Example:
-    splitfolders imgs --ratio .8 .1 .1
+    splitfolders --ratio .8 .1 .1 imgs
 ```
 
 You may use `splitfolders`, `split_folders` or `split-folders`.

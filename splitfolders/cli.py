@@ -8,10 +8,6 @@ def run():
         description="Split folders with files (e.g. images) into training, validation and test(dataset) folders."
     )
     parser.add_argument(
-        "input",
-        help="directory with the input data. The directory needs to have the labels as sub-directories. In those sub-directories are then the actual files that gets split.",
-    )
-    parser.add_argument(
         "--output",
         default="output",
         help="directory where to write the resulting split folders, defaults to `output`",
@@ -38,6 +34,10 @@ def run():
         "--oversample",
         action="store_true",
         help="enable oversampling of imbalanced datasets",
+    )
+    parser.add_argument(
+        "input",
+        help="directory with the input data. The directory needs to have the labels as sub-directories. In those sub-directories are then the actual files that gets split.",
     )
 
     args = parser.parse_args()
