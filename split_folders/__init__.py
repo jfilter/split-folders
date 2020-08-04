@@ -1,1 +1,1 @@
-from .split import *
+from splitfolders import *

@@ -4,7 +4,11 @@ import shutil
 
 import pytest
 
-import split_folders
+from splitfolders import ratio, fixed
+
+
+def test_second_package():
+    from split_folders import ratio, fixed
 
 
 def test_split_ratio():
@@ -13,7 +17,7 @@ def test_split_ratio():
 
     shutil.rmtree(output_dir, ignore_errors=True)
 
-    split_folders.ratio(input_dir, output_dir)
+    ratio(input_dir, output_dir)
 
     # ensure the number of pics is the same
     a = len(list(pathlib.Path(input_dir).glob("**/*.jpg")))
@@ -27,7 +31,7 @@ def test_split_ratio_2():
 
     shutil.rmtree(output_dir, ignore_errors=True)
 
-    split_folders.ratio(input_dir, output_dir, ratio=(0.7, 0.2, 0.1))
+    ratio(input_dir, output_dir, ratio=(0.7, 0.2, 0.1))
 
     # ensure the number of pics is the same
     a = len(list(pathlib.Path(input_dir).glob("**/*.jpg")))
@@ -41,7 +45,7 @@ def test_split_ratio_no_test():
 
     shutil.rmtree(output_dir, ignore_errors=True)
 
-    split_folders.ratio(input_dir, output_dir, ratio=(0.8, 0.2))
+    ratio(input_dir, output_dir, ratio=(0.8, 0.2))
 
     # ensure the number of pics is the same
     a = len(list(pathlib.Path(input_dir).glob("**/*.jpg")))
@@ -55,7 +59,7 @@ def test_split_fixed():
 
     shutil.rmtree(output_dir, ignore_errors=True)
 
-    split_folders.fixed(input_dir, output_dir, fixed=(2, 2))
+    fixed(input_dir, output_dir, fixed=(2, 2))
 
     # ensure the number of pics is the same
     a = len(list(pathlib.Path(input_dir).glob("**/*.jpg")))
@@ -69,7 +73,7 @@ def test_split_fixed_sample():
 
     shutil.rmtree(output_dir, ignore_errors=True)
 
-    split_folders.fixed(input_dir, output_dir, fixed=(2, 2), oversample=True)
+    fixed(input_dir, output_dir, fixed=(2, 2), oversample=True)
 
     # ensure the number of pics is the same
     a = len(list(pathlib.Path(input_dir).glob("**/*.jpg")))
@@ -84,5 +88,5 @@ def test_split_fixed_sample_unbalanced():
     shutil.rmtree(output_dir, ignore_errors=True)
 
     with pytest.raises(ValueError):
-        split_folders.fixed(input_dir, output_dir, fixed=(9, 1), oversample=True)
+        fixed(input_dir, output_dir, fixed=(9, 1), oversample=True)
 

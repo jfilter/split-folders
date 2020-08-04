@@ -1,4 +1,4 @@
-# Split Folders [![Build Status](https://travis-ci.com/jfilter/split-folders.svg?branch=master)](https://travis-ci.com/jfilter/split-folders) [![PyPI](https://img.shields.io/pypi/v/split-folders.svg)](https://pypi.org/project/split-folders/) [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/split-folders.svg)](https://pypi.org/project/split-folders/)
+# `split-folders` [![Build Status](https://travis-ci.com/jfilter/split-folders.svg?branch=master)](https://travis-ci.com/jfilter/split-folders) [![PyPI](https://img.shields.io/pypi/v/split-folders.svg)](https://pypi.org/project/split-folders/) [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/split-folders.svg)](https://pypi.org/project/split-folders/)
 
 Split folders with files (e.g. images) into train, validation and test (dataset) folders.
 
@@ -66,29 +66,29 @@ pip install split-folders tqdm
 
 ## Usage
 
-You you can use `split_folders` as Python module or as a Command Line Interface (CLI).
+You you can use `split-folders` as Python module or as a Command Line Interface (CLI).
 
 If your datasets is balanced (each class has the same number of samples), choose `ratio` otherwise `fixed`. NB: oversampling is turned off by default.
 
 ### Module
 
 ```python
-import split_folders
+import splitfolders
 
 # Split with a ratio.
 # To only split into training and validation set, set a tuple to `ratio`, i.e, `(.8, .2)`.
-split_folders.ratio('input_folder', output="output", seed=1337, ratio=(.8, .1, .1)) # default values
+splitfolders.ratio('input_folder', output="output", seed=1337, ratio=(.8, .1, .1)) # default values
 
 # Split val/test with a fixed number of items e.g. 100 for each set.
 # To only split into training and validation set, use a single number to `fixed`, i.e., `10`.
-split_folders.fixed('input_folder', output="output", seed=1337, fixed=(100, 100), oversample=False) # default values
+splitfolders.fixed('input_folder', output="output", seed=1337, fixed=(100, 100), oversample=False) # default values
 ```
 
 ### CLI
 
 ```
 Usage:
-    split_folders folder_with_images [--output] [--ratio] [--fixed] [--seed] [--oversample]
+    splitfolders folder_with_images [--output] [--ratio] [--fixed] [--seed] [--oversample]
 Options:
     --output     path to the output folder. defaults to `output`. Get created if non-existent.
     --ratio      the ratio to split. e.g. for train/val/test `.8 .1 .1` or for train/val `.8 .2`.
@@ -97,8 +97,10 @@ Options:
     --seed       set seed value for shuffling the items. defaults to 1337.
     --oversample enable oversampling of imbalanced datasets, works only with --fixed.
 Example:
-    split_folders imgs --ratio .8 .1 .1
+    splitfolders imgs --ratio .8 .1 .1
 ```
+
+You may use `splitfolders`, `split_folders` or `split-folders`.
 
 ## Development
 

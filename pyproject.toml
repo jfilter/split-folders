@@ -16,11 +16,14 @@ classifiers = [
     "Topic :: Utilities",
 ]
 readme = "README.md"
+packages = [
+    {include = "splitfolders"}
+]
 
 [tool.poetry.scripts]
-split_folders = "split_folders.cli:run"
-splitfolders = "split_folders.cli:run"
-split-folders = "split_folders.cli:run"
+split_folders = "splitfolders.cli:run"
+splitfolders = "splitfolders.cli:run"
+split-folders = "splitfolders.cli:run"
 
 [tool.poetry.dependencies]
 python = ">=3.6"
