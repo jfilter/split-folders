@@ -67,14 +67,14 @@ pip install split-folders tqdm
 
 ## Usage
 
-You you can use `split-folders` as Python module or as a Command Line Interface (CLI).
+You can use `split-folders` as Python module or as a Command Line Interface (CLI).
 
 If your datasets is balanced (each class has the same number of samples), choose `ratio` otherwise `fixed`. NB: oversampling is turned off by default.
 
 ### Module
 
 ```python
-import splitfolders
+import splitfolders  # or import split_folders
 
 # Split with a ratio.
 # To only split into training and validation set, set a tuple to `ratio`, i.e, `(.8, .2)`.
@@ -107,7 +107,7 @@ Example:
     splitfolders --ratio .8 .1 .1 folder_with_images
 ```
 
-You may use `splitfolders`, `split_folders` or `split-folders`.
+Instead of the command `splitfolders` you can also use `split_folders` or `split-folders`.
 
 ## Development
 
