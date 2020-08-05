@@ -62,7 +62,7 @@ def list_files(directory):
 
 
 def ratio(
-    input, output="output", seed=1337, ratio=(0.8, 0.1, 0.1), shared_prefix=None
+    input, output="output", seed=1337, ratio=(0.8, 0.1, 0.1), group_prefix=None
 ):
     # make up for some impression
     assert round(sum(ratio), 5) == 1
@@ -78,7 +78,7 @@ def ratio(
             ratio,
             seed,
             prog_bar if tqdm_is_installed else None,
-            shared_prefix,
+            group_prefix,
         )
 
     if tqdm_is_installed:
@@ -91,7 +91,7 @@ def fixed(
     seed=1337,
     fixed=(100, 100),
     oversample=False,
-    shared_prefix=None,
+    group_prefix=None,
 ):
     # make sure its reproducible
     if isinstance(fixed, int):
@@ -112,7 +112,7 @@ def fixed(
                 fixed,
                 seed,
                 prog_bar if tqdm_is_installed else None,
-                shared_prefix,
+                group_prefix,
             )
         )
 
@@ -178,7 +178,7 @@ def group_by_prefix(files, len_pairs):
     return results
 
 
-def setup_files(class_dir, seed, shared_prefix=None):
+def setup_files(class_dir, seed, group_prefix=None):
     """Returns shuffled files
     """
     # make sure its reproducible
@@ -186,18 +186,18 @@ def setup_files(class_dir, seed, shared_prefix=None):
 
     files = list_files(class_dir)
 
-    if shared_prefix is not None:
-        files = group_by_prefix(files, shared_prefix)
+    if group_prefix is not None:
+        files = group_by_prefix(files, group_prefix)
 
     files.sort()
     random.shuffle(files)
     return files
 
 
-def split_class_dir_ratio(class_dir, output, ratio, seed, prog_bar, shared_prefix):
+def split_class_dir_ratio(class_dir, output, ratio, seed, prog_bar, group_prefix):
     """Splits one very class folder
     """
-    files = setup_files(class_dir, seed, shared_prefix)
+    files = setup_files(class_dir, seed, group_prefix)
 
     # the data was shuffeld already
     split_train_idx = int(ratio[0] * len(files))
@@ -207,10 +207,10 @@ def split_class_dir_ratio(class_dir, output, ratio, seed, prog_bar, shared_prefi
     copy_files(li, class_dir, output, prog_bar)
 
 
-def split_class_dir_fixed(class_dir, output, fixed, seed, prog_bar, shared_prefix):
+def split_class_dir_fixed(class_dir, output, fixed, seed, prog_bar, group_prefix):
     """Splits one very class folder
     """
-    files = setup_files(class_dir, seed, shared_prefix)
+    files = setup_files(class_dir, seed, group_prefix)
 
     if not len(files) > sum(fixed):
         raise ValueError(

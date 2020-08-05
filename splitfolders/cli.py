@@ -36,7 +36,7 @@ def run():
         help="enable oversampling of imbalanced datasets",
     )
     parser.add_argument(
-        "--shared_prefix",
+        "--group_prefix",
         type=int,
         default=None,
         help="split files into equally-sized groups based on their prefix",

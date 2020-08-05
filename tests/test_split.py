@@ -97,7 +97,7 @@ def test_split_ratio_prefix():
 
     shutil.rmtree(output_dir, ignore_errors=True)
 
-    ratio(input_dir, output_dir, shared_prefix=2)
+    ratio(input_dir, output_dir, group_prefix=2)
 
     # ensure the number of pics is the same
     a = len(list(pathlib.Path(input_dir).glob("**/*.jpg")))
@@ -111,7 +111,7 @@ def test_split_fixed_prefix():
 
     shutil.rmtree(output_dir, ignore_errors=True)
 
-    fixed(input_dir, output_dir, fixed=(1, 1), oversample=False, shared_prefix=2)
+    fixed(input_dir, output_dir, fixed=(1, 1), oversample=False, group_prefix=2)
 
     # ensure the number of pics is the same
     a = len(list(pathlib.Path(input_dir).glob("**/*.jpg")))
@@ -125,7 +125,7 @@ def test_split_fixed_oversample_prefix():
 
     shutil.rmtree(output_dir, ignore_errors=True)
 
-    fixed(input_dir, output_dir, fixed=(1, 1), oversample=True, shared_prefix=2)
+    fixed(input_dir, output_dir, fixed=(1, 1), oversample=True, group_prefix=2)
 
     # ensure the number of pics is the same
     a = len(list(pathlib.Path(input_dir).glob("**/*.jpg")))
@@ -140,7 +140,7 @@ def test_split_ratio_prefix_error_1():
     shutil.rmtree(output_dir, ignore_errors=True)
 
     with pytest.raises(ValueError):
-        ratio(input_dir, output_dir, shared_prefix=2)
+        ratio(input_dir, output_dir, group_prefix=2)
 
 
 def test_split_ratio_prefix_error_2():
@@ -150,4 +150,4 @@ def test_split_ratio_prefix_error_2():
     shutil.rmtree(output_dir, ignore_errors=True)
 
     with pytest.raises(ValueError):
-        ratio(input_dir, output_dir, shared_prefix=2)
+        ratio(input_dir, output_dir, group_prefix=2)
