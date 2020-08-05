@@ -61,9 +61,7 @@ def list_files(directory):
     ]
 
 
-def ratio(
-    input, output="output", seed=1337, ratio=(0.8, 0.1, 0.1), group_prefix=None
-):
+def ratio(input, output="output", seed=1337, ratio=(0.8, 0.1, 0.1), group_prefix=None):
     # make up for some impression
     assert round(sum(ratio), 5) == 1
     assert len(ratio) in (2, 3)
@@ -199,7 +197,7 @@ def split_class_dir_ratio(class_dir, output, ratio, seed, prog_bar, group_prefix
     """
     files = setup_files(class_dir, seed, group_prefix)
 
-    # the data was shuffeld already
+    # the data was shuffled already
     split_train_idx = int(ratio[0] * len(files))
     split_val_idx = split_train_idx + int(ratio[1] * len(files))
 
