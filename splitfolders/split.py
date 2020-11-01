@@ -93,7 +93,7 @@ def fixed(
 ):
     # make sure its reproducible
     if isinstance(fixed, int):
-        fixed = fixed
+        fixed = [fixed]
 
     assert len(fixed) in (1, 2)
 
