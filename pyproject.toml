@@ -1,7 +1,7 @@
 
 [tool.poetry]
 name = "split_folders"
-version = "0.4.2"
+version = "0.4.3"
 description = "Split folders with files (e.g. images) into training, validation and test (dataset) folders."
 license = "MIT"
 authors = ["Johannes Filter <hi@jfilter.de>"]
