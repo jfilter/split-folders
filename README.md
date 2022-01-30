@@ -1,4 +1,4 @@
-# `split-folders` [![Build Status](https://travis-ci.com/jfilter/split-folders.svg?branch=master)](https://travis-ci.com/jfilter/split-folders) [![PyPI](https://img.shields.io/pypi/v/split-folders.svg)](https://pypi.org/project/split-folders/) [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/split-folders.svg)](https://pypi.org/project/split-folders/)  [![PyPI - Downloads](https://img.shields.io/pypi/dm/split-folders)](https://pypistats.org/packages/split-folders)
+# `split-folders` [![Build Status](https://img.shields.io/github/workflow/status/jfilter/split-folders/Test)](https://github.com/jfilter/split-folders/actions/workflows/test.yml) [![PyPI](https://img.shields.io/pypi/v/split-folders.svg)](https://pypi.org/project/split-folders/) [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/split-folders.svg)](https://pypi.org/project/split-folders/) [![PyPI - Downloads](https://img.shields.io/pypi/dm/split-folders)](https://pypistats.org/packages/split-folders)
 
 Split folders with files (e.g. images) into **train**, **validation** and **test** (dataset) folders.
 
@@ -55,14 +55,16 @@ This should get you started to do some serious deep learning on your data. [Read
 
 ## Install
 
+This package is Python only and there are no external dependencies.
+
 ```bash
 pip install split-folders
 ```
 
-If you are working with a large amount of files, you may want to get a progress bar. Install [tqdm](https://github.com/tqdm/tqdm) in order to get visual updates for copying files.
+Optionally, you may install [tqdm](https://github.com/tqdm/tqdm) to get get a progress bar when moving files.
 
 ```bash
-pip install split-folders tqdm
+pip install split-folders[full]
 ```
 
 ## Usage
@@ -71,7 +73,7 @@ You can use `split-folders` as Python module or as a Command Line Interface (CLI
 
 If your datasets is balanced (each class has the same number of samples), choose `ratio` otherwise `fixed`.
 NB: oversampling is turned off by default.
-Oversampling is only applied to the *train* folder since having duplicates in *val* or *test* would be considered cheating.
+Oversampling is only applied to the _train_ folder since having duplicates in _val_ or _test_ would be considered cheating.
 
 ### Module
 
@@ -90,7 +92,7 @@ splitfolders.fixed("input_folder", output="output", seed=1337, fixed=(100, 100),
 Occasionally you may have things that comprise more than a single file (e.g. picture (.png) + annotation (.txt)).
 `splitfolders` lets you split files into equally-sized groups based on their prefix.
 Set `group_prefix` to the length of the group (e.g. `2`).
-But now *all* files should be part of groups.
+But now _all_ files should be part of groups.
 
 ### CLI
 
@@ -122,7 +124,6 @@ Install and use [poetry](https://python-poetry.org/).
 If you have a **question**, found a **bug** or want to propose a new **feature**, have a look at the [issues page](https://github.com/jfilter/split-folders/issues).
 
 **Pull requests** are especially welcomed when they fix bugs or improve the code quality.
-
 
 ## License
 

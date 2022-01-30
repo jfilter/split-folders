@@ -1,38 +1,44 @@
 
 [tool.poetry]
-name = "split_folders"
-version = "0.4.3"
-description = "Split folders with files (e.g. images) into training, validation and test (dataset) folders."
-license = "MIT"
 authors = ["Johannes Filter <hi@jfilter.de>"]
-repository = "https://github.com/jfilter/split-folders"
-keywords = ["machine-learning", "training-validation-test", "datasets", "folders"]
 classifiers = [
-    "Programming Language :: Python :: 3.6",
-    "Programming Language :: Python :: 3.7",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
-    "License :: OSI Approved :: MIT License",
-    "Topic :: Utilities",
+  "Programming Language :: Python :: 3.6",
+  "Programming Language :: Python :: 3.7",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "License :: OSI Approved :: MIT License",
+  "Topic :: Utilities",
+]
+description = "Split folders with files (e.g. images) into training, validation and test (dataset) folders."
+keywords = ["machine-learning", "training-validation-test", "datasets", "folders"]
+license = "MIT"
+name = "split_folders"
+packages = [
+  {include = "splitfolders"},
 ]
 readme = "README.md"
-packages = [
-    {include = "splitfolders"}
-]
+repository = "https://github.com/jfilter/split-folders"
+version = "0.4.3"
 
 [tool.poetry.scripts]
+split-folders = "splitfolders.cli:run"
 split_folders = "splitfolders.cli:run"
 splitfolders = "splitfolders.cli:run"
-split-folders = "splitfolders.cli:run"
 
 [tool.poetry.dependencies]
 python = ">=3.6"
+tqdm = {version = "*", optional = true}
 
 [tool.poetry.dev-dependencies]
-pytest = "*"
-pylint = "*"
 black = {version = "*", allow-prereleases = true, python = ">=3.6"}
+pylint = "*"
+pytest = "*"
+tqdm = "*"
+
+[tool.poetry.extras]
+full = ["tqdm"]
 
 [build-system]
-requires = ["poetry>=0.12"]
 build-backend = "poetry.masonry.api"
+requires = ["poetry>=0.12"]
