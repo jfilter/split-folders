@@ -59,7 +59,14 @@ def list_files(directory):
     ]
 
 
-def ratio(input, output="output", seed=1337, ratio=(0.8, 0.1, 0.1), group_prefix=None):
+def ratio(
+    input,
+    output="output",
+    seed=1337,
+    ratio=(0.8, 0.1, 0.1),
+    group_prefix=None,
+    move=False,
+):
     # make up for some impression
     assert round(sum(ratio), 5) == 1
     assert len(ratio) in (2, 3)
@@ -75,6 +82,7 @@ def ratio(input, output="output", seed=1337, ratio=(0.8, 0.1, 0.1), group_prefix
             seed,
             prog_bar if tqdm_is_installed else None,
             group_prefix,
+            move,
         )
 
     if tqdm_is_installed:
@@ -88,6 +96,7 @@ def fixed(
     fixed=(100, 100),
     oversample=False,
     group_prefix=None,
+    move=False,
 ):
     if isinstance(fixed, int):
         fixed = [fixed]
@@ -108,6 +117,7 @@ def fixed(
                 seed,
                 prog_bar if tqdm_is_installed else None,
                 group_prefix,
+                move,
             )
         )
 
@@ -124,6 +134,8 @@ def fixed(
     if tqdm_is_installed:
         iteration = tqdm(iteration, desc="Oversampling", unit=" classes")
 
+    copy_fun = shutil.move if move else shutil.copy2
+
     for length, class_dir in iteration:
         class_name = path.split(class_dir)[1]
         full_path = path.join(output, "train", class_name)
@@ -134,7 +146,7 @@ def fixed(
                 f_orig = random.choice(train_files)
                 new_name = f_orig.stem + "_" + str(i) + f_orig.suffix
                 f_dest = f_orig.with_name(new_name)
-                shutil.copy2(f_orig, f_dest)
+                copy_fun(f_orig, f_dest)
 
         else:
             train_files = group_by_prefix(train_files, group_prefix)
@@ -145,7 +157,7 @@ def fixed(
                 for f_orig in f_chosen:
                     new_name = f_orig.stem + "_" + str(i) + f_orig.suffix
                     f_dest = f_orig.with_name(new_name)
-                    shutil.copy2(f_orig, f_dest)
+                    copy_fun(f_orig, f_dest)
 
 
 def group_by_prefix(files, len_pairs):
@@ -199,7 +211,7 @@ def setup_files(class_dir, seed, group_prefix=None):
     return files
 
 
-def split_class_dir_ratio(class_dir, output, ratio, seed, prog_bar, group_prefix):
+def split_class_dir_ratio(class_dir, output, ratio, seed, prog_bar, group_prefix, move):
     """Splits one very class folder"""
     files = setup_files(class_dir, seed, group_prefix)
 
@@ -208,10 +220,10 @@ def split_class_dir_ratio(class_dir, output, ratio, seed, prog_bar, group_prefix
     split_val_idx = split_train_idx + int(ratio[1] * len(files))
 
     li = split_files(files, split_train_idx, split_val_idx, len(ratio) == 3)
-    copy_files(li, class_dir, output, prog_bar)
+    copy_files(li, class_dir, output, prog_bar, move)
 
 
-def split_class_dir_fixed(class_dir, output, fixed, seed, prog_bar, group_prefix):
+def split_class_dir_fixed(class_dir, output, fixed, seed, prog_bar, group_prefix, move):
     """Splits one very class folder"""
     files = setup_files(class_dir, seed, group_prefix)
 
@@ -225,7 +237,7 @@ def split_class_dir_fixed(class_dir, output, fixed, seed, prog_bar, group_prefix
     split_val_idx = split_train_idx + fixed[0]
 
     li = split_files(files, split_train_idx, split_val_idx, len(fixed) == 2)
-    copy_files(li, class_dir, output, prog_bar)
+    copy_files(li, class_dir, output, prog_bar, move)
     return len(files)
 
 
@@ -245,9 +257,12 @@ def split_files(files, split_train_idx, split_val_idx, use_test):
     return li
 
 
-def copy_files(files_type, class_dir, output, prog_bar):
+def copy_files(files_type, class_dir, output, prog_bar, move):
     """Copies the files from the input folder to the output folder"""
     # get the last part within the file
+
+    copy_fun = shutil.move if move else shutil.copy2
+
     class_name = path.split(class_dir)[1]
     for (files, folder_type) in files_type:
         full_path = path.join(output, folder_type, class_name)
@@ -258,6 +273,6 @@ def copy_files(files_type, class_dir, output, prog_bar):
                 prog_bar.update()
             if type(f) == tuple:
                 for x in f:
-                    shutil.copy2(x, full_path)
+                    copy_fun(x, full_path)
             else:
-                shutil.copy2(f, full_path)
+                copy_fun(f, full_path)

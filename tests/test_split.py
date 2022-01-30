@@ -167,9 +167,6 @@ def test_split_fixed_oversample_prefix():
     # ensure the number of pics is not the same
     a = len(list(pathlib.Path(input_dir).glob("**/*.jpg")))
     b = len(list(pathlib.Path(output_dir).glob("**/*.jpg")))
-    print(a, b)
-    print(list(pathlib.Path(input_dir).glob("**/*.jpg")))
-    print(list(pathlib.Path(output_dir).glob("**/*.jpg")))
     assert a != b
 
     # ensure the number of texts is not the same

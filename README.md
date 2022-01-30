@@ -82,23 +82,27 @@ import splitfolders  # or import split_folders
 
 # Split with a ratio.
 # To only split into training and validation set, set a tuple to `ratio`, i.e, `(.8, .2)`.
-splitfolders.ratio("input_folder", output="output", seed=1337, ratio=(.8, .1, .1), group_prefix=None) # default values
+splitfolders.ratio("input_folder", output="output",
+    seed=1337, ratio=(.8, .1, .1), group_prefix=None, move=False) # default values
 
 # Split val/test with a fixed number of items e.g. 100 for each set.
 # To only split into training and validation set, use a single number to `fixed`, i.e., `10`.
-splitfolders.fixed("input_folder", output="output", seed=1337, fixed=(100, 100), oversample=False, group_prefix=None) # default values
+splitfolders.fixed("input_folder", output="output",
+    seed=1337, fixed=(100, 100), oversample=False, group_prefix=None, move=False) # default values
 ```
 
-Occasionally you may have things that comprise more than a single file (e.g. picture (.png) + annotation (.txt)).
+Occasionally, you may have things that comprise more than a single file (e.g. picture (.png) + annotation (.txt)).
 `splitfolders` lets you split files into equally-sized groups based on their prefix.
 Set `group_prefix` to the length of the group (e.g. `2`).
 But now _all_ files should be part of groups.
+
+Set `move=True` if you want to move the files instead of copying.
 
 ### CLI
 
 ```
 Usage:
-    splitfolders [--output] [--ratio] [--fixed] [--seed] [--oversample] [--group_prefix] folder_with_images
+    splitfolders [--output] [--ratio] [--fixed] [--seed] [--oversample] [--group_prefix] [--move] folder_with_images
 Options:
     --output        path to the output folder. defaults to `output`. Get created if non-existent.
     --ratio         the ratio to split. e.g. for train/val/test `.8 .1 .1 --` or for train/val `.8 .2 --`.
@@ -107,6 +111,7 @@ Options:
     --seed          set seed value for shuffling the items. defaults to 1337.
     --oversample    enable oversampling of imbalanced datasets, works only with --fixed.
     --group_prefix  split files into equally-sized groups based on their prefix
+    --move          move the files instead of copying
 Example:
     splitfolders --ratio .8 .1 .1 -- folder_with_images
 ```

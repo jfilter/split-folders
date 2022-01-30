@@ -42,6 +42,11 @@ def run():
         help="split files into equally-sized groups based on their prefix",
     )
     parser.add_argument(
+        "--move",
+        action="store_true",
+        help="move the files instead of copying",
+    )
+    parser.add_argument(
         "input",
         help="directory with the input data. The directory needs to have the labels as sub-directories. In those sub-directories are then the actual files that gets split.",
     )
@@ -49,10 +54,20 @@ def run():
     args = parser.parse_args()
 
     if args.ratio:
-        ratio(args.input, args.output, args.seed, args.ratio)
+        ratio(
+            args.input, args.output, args.seed, args.ratio, args.group_prefix, args.move
+        )
     else:
         if args.fixed:
-            fixed(args.input, args.output, args.seed, args.fixed, args.oversample)
+            fixed(
+                args.input,
+                args.output,
+                args.seed,
+                args.fixed,
+                args.oversample,
+                args.group_prefix,
+                args.move,
+            )
         else:
             print(
                 "Please specify either your `--ratio` or your `--fixed` number of items for the split. see -h for more help."
