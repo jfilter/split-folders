@@ -4,11 +4,11 @@ import shutil
 
 import pytest
 
-from splitfolders import ratio, fixed
+from splitfolders import fixed, ratio
 
 
 def test_second_package():
-    from split_folders import ratio, fixed
+    from split_folders import fixed, ratio
 
 
 def test_split_ratio():
@@ -66,6 +66,7 @@ def test_split_fixed():
     b = len(list(pathlib.Path(output_dir).glob("**/*.jpg")))
     assert a == b
 
+
 def test_split_fixed_simple():
     input_dir = os.path.join(os.path.dirname(__file__), "imgs")
     output_dir = os.path.join(os.path.dirname(__file__), "output")
@@ -78,6 +79,7 @@ def test_split_fixed_simple():
     a = len(list(pathlib.Path(input_dir).glob("**/*.jpg")))
     b = len(list(pathlib.Path(output_dir).glob("**/*.jpg")))
     assert a == b
+
 
 def test_split_fixed_simple_2():
     input_dir = os.path.join(os.path.dirname(__file__), "imgs")

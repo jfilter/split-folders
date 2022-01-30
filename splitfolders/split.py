@@ -46,14 +46,12 @@ except ImportError:
 
 
 def list_dirs(directory):
-    """Returns all directories in a given directory
-    """
+    """Returns all directories in a given directory"""
     return [f for f in pathlib.Path(directory).iterdir() if f.is_dir()]
 
 
 def list_files(directory):
-    """Returns all files in a given directory
-    """
+    """Returns all files in a given directory"""
     return [
         f
         for f in pathlib.Path(directory).iterdir()
@@ -91,7 +89,6 @@ def fixed(
     oversample=False,
     group_prefix=None,
 ):
-    # make sure its reproducible
     if isinstance(fixed, int):
         fixed = [fixed]
 
@@ -140,8 +137,7 @@ def fixed(
 
 
 def group_by_prefix(files, len_pairs):
-    """Split files into groups of len `len_pairs` based on their prefix.
-    """
+    """Split files into groups of len `len_pairs` based on their prefix."""
     results = []
     results_set = set()  # for fast lookup, only file names
     for f in files:
@@ -177,8 +173,7 @@ def group_by_prefix(files, len_pairs):
 
 
 def setup_files(class_dir, seed, group_prefix=None):
-    """Returns shuffled files
-    """
+    """Returns shuffled files"""
     # make sure its reproducible
     random.seed(seed)
 
@@ -193,8 +188,7 @@ def setup_files(class_dir, seed, group_prefix=None):
 
 
 def split_class_dir_ratio(class_dir, output, ratio, seed, prog_bar, group_prefix):
-    """Splits one very class folder
-    """
+    """Splits one very class folder"""
     files = setup_files(class_dir, seed, group_prefix)
 
     # the data was shuffled already
@@ -206,8 +200,7 @@ def split_class_dir_ratio(class_dir, output, ratio, seed, prog_bar, group_prefix
 
 
 def split_class_dir_fixed(class_dir, output, fixed, seed, prog_bar, group_prefix):
-    """Splits one very class folder
-    """
+    """Splits one very class folder"""
     files = setup_files(class_dir, seed, group_prefix)
 
     if not len(files) > sum(fixed):
@@ -225,8 +218,7 @@ def split_class_dir_fixed(class_dir, output, fixed, seed, prog_bar, group_prefix
 
 
 def split_files(files, split_train_idx, split_val_idx, use_test):
-    """Splits the files along the provided indices
-    """
+    """Splits the files along the provided indices"""
     files_train = files[:split_train_idx]
     files_val = (
         files[split_train_idx:split_val_idx] if use_test else files[split_train_idx:]
@@ -242,8 +234,7 @@ def split_files(files, split_train_idx, split_val_idx, use_test):
 
 
 def copy_files(files_type, class_dir, output, prog_bar):
-    """Copies the files from the input folder to the output folder
-    """
+    """Copies the files from the input folder to the output folder"""
     # get the last part within the file
     class_name = path.split(class_dir)[1]
     for (files, folder_type) in files_type:

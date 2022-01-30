@@ -1,6 +1,6 @@
-from .split import ratio, fixed
-
 import argparse
+
+from .split import fixed, ratio
 
 
 def run():
