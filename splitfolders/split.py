@@ -129,11 +129,23 @@ def fixed(
         full_path = path.join(output, "train", class_name)
         train_files = list_files(full_path)
 
-        for i in range(max_len - length):
-            f_orig = random.choice(train_files)
-            new_name = f_orig.stem + "_" + str(i) + f_orig.suffix
-            f_dest = f_orig.with_name(new_name)
-            shutil.copy2(f_orig, f_dest)
+        if group_prefix is None:
+            for i in range(max_len - length):
+                f_orig = random.choice(train_files)
+                new_name = f_orig.stem + "_" + str(i) + f_orig.suffix
+                f_dest = f_orig.with_name(new_name)
+                shutil.copy2(f_orig, f_dest)
+
+        else:
+            train_files = group_by_prefix(train_files, group_prefix)
+
+            for i in range(max_len - length):
+                f_chosen = random.choice(train_files)
+
+                for f_orig in f_chosen:
+                    new_name = f_orig.stem + "_" + str(i) + f_orig.suffix
+                    f_dest = f_orig.with_name(new_name)
+                    shutil.copy2(f_orig, f_dest)
 
 
 def group_by_prefix(files, len_pairs):

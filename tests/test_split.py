@@ -131,6 +131,10 @@ def test_split_ratio_prefix():
     a = len(list(pathlib.Path(input_dir).glob("**/*.jpg")))
     b = len(list(pathlib.Path(output_dir).glob("**/*.jpg")))
     assert a == b
+    # ensure the number of texts is the same
+    a = len(list(pathlib.Path(input_dir).glob("**/*.txt")))
+    b = len(list(pathlib.Path(output_dir).glob("**/*.txt")))
+    assert a == b
 
 
 def test_split_fixed_prefix():
@@ -146,6 +150,11 @@ def test_split_fixed_prefix():
     b = len(list(pathlib.Path(output_dir).glob("**/*.jpg")))
     assert a == b
 
+    # ensure the number of texts is the same
+    a = len(list(pathlib.Path(input_dir).glob("**/*.txt")))
+    b = len(list(pathlib.Path(output_dir).glob("**/*.txt")))
+    assert a == b
+
 
 def test_split_fixed_oversample_prefix():
     input_dir = os.path.join(os.path.dirname(__file__), "imgs_texts")
@@ -155,9 +164,17 @@ def test_split_fixed_oversample_prefix():
 
     fixed(input_dir, output_dir, fixed=(1, 1), oversample=True, group_prefix=2)
 
-    # ensure the number of pics is the same
+    # ensure the number of pics is not the same
     a = len(list(pathlib.Path(input_dir).glob("**/*.jpg")))
     b = len(list(pathlib.Path(output_dir).glob("**/*.jpg")))
+    print(a, b)
+    print(list(pathlib.Path(input_dir).glob("**/*.jpg")))
+    print(list(pathlib.Path(output_dir).glob("**/*.jpg")))
+    assert a != b
+
+    # ensure the number of texts is not the same
+    a = len(list(pathlib.Path(input_dir).glob("**/*.txt")))
+    b = len(list(pathlib.Path(output_dir).glob("**/*.txt")))
     assert a != b
 
 
