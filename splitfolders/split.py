@@ -32,31 +32,19 @@ into this resulting format:
             ...
 """
 
-import pathlib
+from pathlib import Path
 import random
 import shutil
 from os import path
 
+from .utils import list_dirs, list_files
+
 try:
     from tqdm import tqdm
 
-    tqdm_is_installed = True
+    use_tqdm = True
 except ImportError:
-    tqdm_is_installed = False
-
-
-def list_dirs(directory):
-    """Returns all directories in a given directory"""
-    return [f for f in pathlib.Path(directory).iterdir() if f.is_dir()]
-
-
-def list_files(directory):
-    """Returns all files in a given directory"""
-    return [
-        f
-        for f in pathlib.Path(directory).iterdir()
-        if f.is_file() and not f.name.startswith(".")
-    ]
+    use_tqdm = False
 
 
 def ratio(
@@ -67,11 +55,12 @@ def ratio(
     group_prefix=None,
     move=False,
 ):
-    # make up for some impression
-    assert round(sum(ratio), 5) == 1
-    assert len(ratio) in (2, 3)
+    if not round(sum(ratio), 5) == 1:  # round for floating imprecision
+        raise ValueError("The sums of `ratio` is over 1.")
+    if not len(ratio) in (2, 3):
+        raise ValueError("`ratio` should")
 
-    if tqdm_is_installed:
+    if use_tqdm:
         prog_bar = tqdm(desc=f"Copying files", unit=" files")
 
     for class_dir in list_dirs(input):
@@ -80,12 +69,12 @@ def ratio(
             output,
             ratio,
             seed,
-            prog_bar if tqdm_is_installed else None,
+            prog_bar if use_tqdm else None,
             group_prefix,
             move,
         )
 
-    if tqdm_is_installed:
+    if use_tqdm:
         prog_bar.close()
 
 
@@ -103,65 +92,62 @@ def fixed(
 
     assert len(fixed) in (1, 2)
 
-    if tqdm_is_installed:
+    if use_tqdm:
         prog_bar = tqdm(desc=f"Copying files", unit=" files")
 
-    dirs = list_dirs(input)
-    lens = []
-    for class_dir in dirs:
-        lens.append(
+    classes_dirs = list_dirs(input)
+    num_items = []
+    for class_dir in classes_dirs:
+        num_items.append(
             split_class_dir_fixed(
                 class_dir,
                 output,
                 fixed,
                 seed,
-                prog_bar if tqdm_is_installed else None,
+                prog_bar if use_tqdm else None,
                 group_prefix,
                 move,
             )
         )
 
-    if tqdm_is_installed:
+    if use_tqdm:
         prog_bar.close()
 
     if not oversample:
         return
 
-    max_len = max(lens)
+    num_max_items = max(num_items)
+    iteration = zip(num_items, classes_dirs)
 
-    iteration = zip(lens, dirs)
-
-    if tqdm_is_installed:
+    if use_tqdm:
         iteration = tqdm(iteration, desc="Oversampling", unit=" classes")
 
     copy_fun = shutil.move if move else shutil.copy2
 
-    for length, class_dir in iteration:
+    for num_items, class_dir in iteration:
         class_name = path.split(class_dir)[1]
         full_path = path.join(output, "train", class_name)
         train_files = list_files(full_path)
 
-        if group_prefix is None:
-            for i in range(max_len - length):
-                f_orig = random.choice(train_files)
+        if group_prefix is not None:
+            train_files = group_by_prefix(train_files, group_prefix)
+
+        for i in range(num_max_items - num_items):
+            f_chosen = random.choice(train_files)
+
+            if not type(f_chosen) is tuple:
+                f_chosen = (f_chosen,)
+
+            for f_orig in f_chosen:
                 new_name = f_orig.stem + "_" + str(i) + f_orig.suffix
                 f_dest = f_orig.with_name(new_name)
                 copy_fun(f_orig, f_dest)
 
-        else:
-            train_files = group_by_prefix(train_files, group_prefix)
-
-            for i in range(max_len - length):
-                f_chosen = random.choice(train_files)
-
-                for f_orig in f_chosen:
-                    new_name = f_orig.stem + "_" + str(i) + f_orig.suffix
-                    f_dest = f_orig.with_name(new_name)
-                    copy_fun(f_orig, f_dest)
-
 
 def group_by_prefix(files, len_pairs):
-    """Split files into groups of len `len_pairs` based on their prefix."""
+    """
+    Split files into groups of len `len_pairs` based on their prefix.
+    """
     results = []
     results_set = set()  # for fast lookup, only file names
     for f in files:
@@ -197,9 +183,10 @@ def group_by_prefix(files, len_pairs):
 
 
 def setup_files(class_dir, seed, group_prefix=None):
-    """Returns shuffled files"""
-    # make sure its reproducible
-    random.seed(seed)
+    """
+    Returns shuffeld list of filenames
+    """
+    random.seed(seed)  # make sure its reproducible
 
     files = list_files(class_dir)
 
@@ -212,7 +199,9 @@ def setup_files(class_dir, seed, group_prefix=None):
 
 
 def split_class_dir_ratio(class_dir, output, ratio, seed, prog_bar, group_prefix, move):
-    """Splits one very class folder"""
+    """
+    Splits a class folder
+    """
     files = setup_files(class_dir, seed, group_prefix)
 
     # the data was shuffled already
@@ -224,7 +213,9 @@ def split_class_dir_ratio(class_dir, output, ratio, seed, prog_bar, group_prefix
 
 
 def split_class_dir_fixed(class_dir, output, fixed, seed, prog_bar, group_prefix, move):
-    """Splits one very class folder"""
+    """
+    Splits a class folder and returns the total number of files
+    """
     files = setup_files(class_dir, seed, group_prefix)
 
     if not len(files) > sum(fixed):
@@ -242,7 +233,9 @@ def split_class_dir_fixed(class_dir, output, fixed, seed, prog_bar, group_prefix
 
 
 def split_files(files, split_train_idx, split_val_idx, use_test):
-    """Splits the files along the provided indices"""
+    """
+    Splits the files along the provided indices
+    """
     files_train = files[:split_train_idx]
     files_val = (
         files[split_train_idx:split_val_idx] if use_test else files[split_train_idx:]
@@ -258,16 +251,18 @@ def split_files(files, split_train_idx, split_val_idx, use_test):
 
 
 def copy_files(files_type, class_dir, output, prog_bar, move):
-    """Copies the files from the input folder to the output folder"""
-    # get the last part within the file
+    """
+    Copies the files from the input folder to the output folder
+    """
 
     copy_fun = shutil.move if move else shutil.copy2
 
+    # get the last part within the file
     class_name = path.split(class_dir)[1]
     for (files, folder_type) in files_type:
         full_path = path.join(output, folder_type, class_name)
 
-        pathlib.Path(full_path).mkdir(parents=True, exist_ok=True)
+        Path(full_path).mkdir(parents=True, exist_ok=True)
         for f in files:
             if not prog_bar is None:
                 prog_bar.update()
