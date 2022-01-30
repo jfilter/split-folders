@@ -78,15 +78,16 @@ Oversampling is only applied to the _train_ folder since having duplicates in _v
 ### Module
 
 ```python
-import splitfolders  # or import split_folders
+import splitfolders
 
 # Split with a ratio.
 # To only split into training and validation set, set a tuple to `ratio`, i.e, `(.8, .2)`.
 splitfolders.ratio("input_folder", output="output",
     seed=1337, ratio=(.8, .1, .1), group_prefix=None, move=False) # default values
 
-# Split val/test with a fixed number of items e.g. 100 for each set.
+# Split val/test with a fixed number of items, e.g. `(100, 100)`, for each set.
 # To only split into training and validation set, use a single number to `fixed`, i.e., `10`.
+# Set 3 values, e.g. `(300, 100, 100)`, to limit the number of training values.
 splitfolders.fixed("input_folder", output="output",
     seed=1337, fixed=(100, 100), oversample=False, group_prefix=None, move=False) # default values
 ```
@@ -108,6 +109,7 @@ Options:
     --ratio         the ratio to split. e.g. for train/val/test `.8 .1 .1 --` or for train/val `.8 .2 --`.
     --fixed         set the absolute number of items per validation/test set. The remaining items constitute
                     the training set. e.g. for train/val/test `100 100` or for train/val `100`.
+                    Set 3 values, e.g. `300 100 100`, to limit the number of training values.
     --seed          set seed value for shuffling the items. defaults to 1337.
     --oversample    enable oversampling of imbalanced datasets, works only with --fixed.
     --group_prefix  split files into equally-sized groups based on their prefix

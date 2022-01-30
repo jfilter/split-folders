@@ -119,6 +119,20 @@ def test_split_fixed_oversample_unbalanced():
         fixed(input_dir, output_dir, fixed=(9, 1), oversample=True)
 
 
+def test_split_fixed_limit_test():
+    input_dir = os.path.join(os.path.dirname(__file__), "imgs")
+    output_dir = os.path.join(os.path.dirname(__file__), "output")
+
+    shutil.rmtree(output_dir, ignore_errors=True)
+
+    fixed(input_dir, output_dir, fixed=(3, 2, 2), oversample=False)
+
+    # ensure the number of pics is the same
+    a = len(list(pathlib.Path(input_dir).glob("**/*.jpg")))
+    b = len(list(pathlib.Path(output_dir).glob("**/*.jpg")))
+    assert b == 14
+
+
 def test_split_ratio_prefix():
     input_dir = os.path.join(os.path.dirname(__file__), "imgs_texts")
     output_dir = os.path.join(os.path.dirname(__file__), "output")

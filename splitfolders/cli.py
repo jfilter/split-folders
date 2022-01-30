@@ -28,7 +28,7 @@ def run():
         "--fixed",
         nargs="+",
         type=int,
-        help="set the absolute number of items per validation/test set. The remaining items get to the training. e.g. for train/val/test `100 100` or for train/val `100`",
+        help="set the absolute number of items per validation/test set. The remaining items get to the training. e.g. for train/val/test `100 100` or for train/val `100`. Set 3 values, e.g. `300 100 100`, to limit the number of training values.",
     )
     parser.add_argument(
         "--oversample",

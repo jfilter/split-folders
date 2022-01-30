@@ -90,7 +90,13 @@ def fixed(
     if isinstance(fixed, int):
         fixed = [fixed]
 
-    assert len(fixed) in (1, 2)
+    if not len(fixed) in (1, 2, 3):
+        raise ValueError("`fixed` should be an integer or a list of 2 or 3 integers")
+
+    if len(fixed) == 3 and oversample:
+        raise ValueError(
+            "Using fixed with 3 values together with oversampling is not implemented."
+        )
 
     if use_tqdm:
         prog_bar = tqdm(desc=f"Copying files", unit=" files")
@@ -224,15 +230,25 @@ def split_class_dir_fixed(class_dir, output, fixed, seed, prog_bar, group_prefix
         )
 
     # the data was shuffeld already
-    split_train_idx = len(files) - sum(fixed)
-    split_val_idx = split_train_idx + fixed[0]
+    if len(fixed) <= 2:
+        split_train_idx = len(files) - sum(fixed)
+        split_val_idx = split_train_idx + fixed[0]
+    else:
+        split_train_idx = fixed[0]
+        split_val_idx = fixed[0] + fixed[1]
 
-    li = split_files(files, split_train_idx, split_val_idx, len(fixed) == 2)
+    li = split_files(
+        files,
+        split_train_idx,
+        split_val_idx,
+        len(fixed) >= 2,
+        None if len(fixed) != 3 else fixed[2],
+    )
     copy_files(li, class_dir, output, prog_bar, move)
     return len(files)
 
 
-def split_files(files, split_train_idx, split_val_idx, use_test):
+def split_files(files, split_train_idx, split_val_idx, use_test, max_test=None):
     """
     Splits the files along the provided indices
     """
@@ -246,6 +262,9 @@ def split_files(files, split_train_idx, split_val_idx, use_test):
     # optional test folder
     if use_test:
         files_test = files[split_val_idx:]
+        if max_test is not None:
+            files_test = files_test[:max_test]
+
         li.append((files_test, "test"))
     return li
 
