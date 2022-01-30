@@ -11,6 +11,17 @@ def test_second_package():
     from split_folders import fixed, ratio
 
 
+def test_wrong_input():
+    input_dir = os.path.join(os.path.dirname(__file__), "imgsxx")
+    output_dir = os.path.join(os.path.dirname(__file__), "output")
+
+    with pytest.raises(ValueError):
+        fixed(input_dir, output_dir)
+
+    with pytest.raises(ValueError):
+        fixed("peterpan", output_dir)
+
+
 def test_split_ratio():
     input_dir = os.path.join(os.path.dirname(__file__), "imgs")
     output_dir = os.path.join(os.path.dirname(__file__), "output")

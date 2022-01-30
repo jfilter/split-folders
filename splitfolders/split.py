@@ -47,6 +47,24 @@ except ImportError:
     use_tqdm = False
 
 
+def check_input_format(input):
+    p_input = Path(input)
+    if not p_input.exists():
+        err_msg = f'The provided input folder "{input}" does not exists.'
+        if not p_input.is_absolute():
+            err_msg += f' Your relative path cannot be found from the current working directory "{Path.cwd()}".'
+        raise ValueError(err_msg)
+
+    if not p_input.is_dir():
+        raise ValueError(f'The provided input folder "{input}" is not a directory')
+
+    dirs = list_dirs(input)
+    if len(dirs) == 0:
+        raise ValueError(
+            f'The input data is not in a right format. Within your folder "{input}" there are no directories. Consult the documentation how to the folder structure should look like.'
+        )
+
+
 def ratio(
     input,
     output="output",
@@ -59,6 +77,8 @@ def ratio(
         raise ValueError("The sums of `ratio` is over 1.")
     if not len(ratio) in (2, 3):
         raise ValueError("`ratio` should")
+
+    check_input_format(input)
 
     if use_tqdm:
         prog_bar = tqdm(desc=f"Copying files", unit=" files")
@@ -97,6 +117,8 @@ def fixed(
         raise ValueError(
             "Using fixed with 3 values together with oversampling is not implemented."
         )
+
+    check_input_format(input)
 
     if use_tqdm:
         prog_bar = tqdm(desc=f"Copying files", unit=" files")
