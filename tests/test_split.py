@@ -36,6 +36,46 @@ def test_split_ratio():
     assert a == b
 
 
+def test_split_ratio_path():
+    input_dir = os.path.join(os.path.dirname(__file__), "imgs")
+    output_dir = os.path.join(os.path.dirname(__file__), "output")
+
+    shutil.rmtree(output_dir, ignore_errors=True)
+
+    ratio(pathlib.Path(input_dir), pathlib.Path(output_dir))
+
+    # ensure the number of pics is the same
+    a = len(list(pathlib.Path(input_dir).glob("**/*.jpg")))
+    b = len(list(pathlib.Path(output_dir).glob("**/*.jpg")))
+    assert a == b
+
+
+def test_split_ratio_path_move():
+    input_dir = os.path.join(os.path.dirname(__file__), "imgs")
+    input_dir2 = os.path.join(os.path.dirname(__file__), "imgs_move")
+    output_dir = os.path.join(os.path.dirname(__file__), "output")
+
+    shutil.copytree(input_dir, input_dir2, dirs_exist_ok=True)
+    shutil.rmtree(output_dir, ignore_errors=True)
+
+    ratio(
+        pathlib.Path(input_dir2),
+        output=pathlib.Path(output_dir),
+        seed=1337,
+        ratio=(
+            0.8,
+            0.2,
+        ),
+        group_prefix=None,
+        move=True,
+    )
+
+    # ensure the number of pics is the same
+    a = len(list(pathlib.Path(input_dir).glob("**/*.jpg")))
+    b = len(list(pathlib.Path(output_dir).glob("**/*.jpg")))
+    assert a == b
+
+
 def test_split_ratio_2():
     input_dir = os.path.join(os.path.dirname(__file__), "imgs")
     output_dir = os.path.join(os.path.dirname(__file__), "output")
