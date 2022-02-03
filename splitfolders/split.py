@@ -169,7 +169,7 @@ def fixed(
             for f_orig in f_chosen:
                 new_name = f_orig.stem + "_" + str(i) + f_orig.suffix
                 f_dest = f_orig.with_name(new_name)
-                copy_fun(f_orig, f_dest)
+                copy_fun(str(f_orig), str(f_dest))
 
 
 def group_by_prefix(files, len_pairs):
@@ -309,6 +309,6 @@ def copy_files(files_type, class_dir, output, prog_bar, move):
                 prog_bar.update()
             if type(f) == tuple:
                 for x in f:
-                    copy_fun(x, full_path)
+                    copy_fun(str(x), str(full_path))
             else:
-                copy_fun(f, full_path)
+                copy_fun(str(f), str(full_path))

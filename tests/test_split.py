@@ -50,12 +50,25 @@ def test_split_ratio_path():
     assert a == b
 
 
+def rm_tree(pth):
+    for child in pth.iterdir():
+        if child.is_file():
+            child.unlink()
+        else:
+            rm_tree(child)
+    pth.rmdir()
+
+
 def test_split_ratio_path_move():
     input_dir = os.path.join(os.path.dirname(__file__), "imgs")
     input_dir2 = os.path.join(os.path.dirname(__file__), "imgs_move")
     output_dir = os.path.join(os.path.dirname(__file__), "output")
 
-    shutil.copytree(input_dir, input_dir2, dirs_exist_ok=True)
+    if pathlib.Path(input_dir2).exists():
+        rm_tree(pathlib.Path(input_dir2))
+
+    shutil.copytree(input_dir, input_dir2)
+    # shutil.copytree(input_dir, input_dir2, dirs_exist_ok=True)
     shutil.rmtree(output_dir, ignore_errors=True)
 
     ratio(
