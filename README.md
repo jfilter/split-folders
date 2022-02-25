@@ -61,7 +61,7 @@ This package is Python only and there are no external dependencies.
 pip install split-folders
 ```
 
-Optionally, you may install [tqdm](https://github.com/tqdm/tqdm) to get get a progress bar when moving files.
+Optionally, you may install [tqdm](https://github.com/tqdm/tqdm) to get a progress bar when moving files.
 
 ```bash
 pip install split-folders[full]
