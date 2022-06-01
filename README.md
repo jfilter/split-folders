@@ -51,6 +51,7 @@ This should get you started to do some serious deep learning on your data. [Read
 -   A [seed](https://docs.python.org/3/library/random.html#random.seed) makes splits reproducible.
 -   Allows randomized [oversampling](https://en.wikipedia.org/wiki/Oversampling_and_undersampling_in_data_analysis) for imbalanced datasets.
 -   Optionally group files by prefix.
+-   Optionally split files by file format(s).
 -   (Should) work on all operating systems.
 
 ## Install
@@ -83,13 +84,13 @@ import splitfolders
 # Split with a ratio.
 # To only split into training and validation set, set a tuple to `ratio`, i.e, `(.8, .2)`.
 splitfolders.ratio("input_folder", output="output",
-    seed=1337, ratio=(.8, .1, .1), group_prefix=None, move=False) # default values
+    seed=1337, ratio=(.8, .1, .1), group_prefix=None, formats=None, move=False) # default values
 
 # Split val/test with a fixed number of items, e.g. `(100, 100)`, for each set.
 # To only split into training and validation set, use a single number to `fixed`, i.e., `10`.
 # Set 3 values, e.g. `(300, 100, 100)`, to limit the number of training values.
 splitfolders.fixed("input_folder", output="output",
-    seed=1337, fixed=(100, 100), oversample=False, group_prefix=None, move=False) # default values
+    seed=1337, fixed=(100, 100), oversample=False, group_prefix=None, formats=None, move=False) # default values
 ```
 
 Occasionally, you may have things that comprise more than a single file (e.g. picture (.png) + annotation (.txt)).
@@ -97,13 +98,15 @@ Occasionally, you may have things that comprise more than a single file (e.g. pi
 Set `group_prefix` to the length of the group (e.g. `2`).
 But now _all_ files should be part of groups.
 
+Also, there might be some instances when you have multiple file formats in these folders. Provide one or multiple extension(s) to `formats` for spliting the files in a list (e.g. `formats = ['.jpeg','.png']`). 
+
 Set `move=True` if you want to move the files instead of copying.
 
 ### CLI
 
 ```
 Usage:
-    splitfolders [--output] [--ratio] [--fixed] [--seed] [--oversample] [--group_prefix] [--move] folder_with_images
+    splitfolders [--output] [--ratio] [--fixed] [--seed] [--oversample] [--group_prefix] [--formats] [--move] folder_with_images
 Options:
     --output        path to the output folder. defaults to `output`. Get created if non-existent.
     --ratio         the ratio to split. e.g. for train/val/test `.8 .1 .1 --` or for train/val `.8 .2 --`.
@@ -113,6 +116,7 @@ Options:
     --seed          set seed value for shuffling the items. defaults to 1337.
     --oversample    enable oversampling of imbalanced datasets, works only with --fixed.
     --group_prefix  split files into equally-sized groups based on their prefix
+    --formats       split the files based on specified extension(s)
     --move          move the files instead of copying
 Example:
     splitfolders --ratio .8 .1 .1 -- folder_with_images
