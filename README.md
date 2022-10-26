@@ -118,7 +118,7 @@ Example:
     splitfolders --ratio .8 .1 .1 -- folder_with_images
 ```
 
-Because of some [Python quirks](https://github.com/jfilter/split-folders/issues/19) you have to prepend ` --` afer using `--ratio`.
+Because of some [Python quirks](https://github.com/jfilter/split-folders/issues/19) you have to prepend ` --` after using `--ratio`.
 
 Instead of the command `splitfolders` you can also use `split_folders` or `split-folders`.
 
