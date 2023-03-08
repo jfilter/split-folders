@@ -35,7 +35,7 @@ into this resulting format:
 from pathlib import Path
 import random
 import shutil
-from os import path
+from os import path, symlink
 
 from .utils import list_dirs, list_files
 
@@ -150,8 +150,22 @@ def fixed(
     if use_tqdm:
         iteration = tqdm(iteration, desc="Oversampling", unit=" classes")
 
-    copy_fun = shutil.move if move else shutil.copy2
+    if move == 'move' or move is True:
+        copy_fun = shutil.move
+    elif move == 'copy' or move is False:
+        copy_fun = shutil.copy2
+    else:
+        copy_fun = symlink
 
+    def copyer(f_orig, f_dest):
+        if isinstance(move, bool) or move == 'move' or move == 'copy':
+            copy_fun(str(f_orig), str(f_dest))
+        else:
+            try:
+                copy_fun(f_orig.resolve(), f_dest.resolve())
+            except FileExistsError:
+                pass
+    
     for num_items, class_dir in iteration:
         class_name = path.split(class_dir)[1]
         full_path = path.join(output, "train", class_name)
@@ -169,7 +183,8 @@ def fixed(
             for f_orig in f_chosen:
                 new_name = f_orig.stem + "_" + str(i) + f_orig.suffix
                 f_dest = f_orig.with_name(new_name)
-                copy_fun(str(f_orig), str(f_dest))
+                print(f'{f_orig}, {f_orig.stem}, {f_orig.suffix}, {f_dest}')
+                copyer(f_orig, f_dest)
 
 
 def group_by_prefix(files, len_pairs):
@@ -296,8 +311,23 @@ def copy_files(files_type, class_dir, output, prog_bar, move):
     Copies the files from the input folder to the output folder
     """
 
-    copy_fun = shutil.move if move else shutil.copy2
+    if move == 'move' or move is True:
+        copy_fun = shutil.move
+    elif move == 'copy' or move is False:
+        copy_fun = shutil.copy2
+    else:
+        copy_fun = symlink
 
+    def copyer(base_file, full_path):
+        if isinstance(move, bool) or move == 'move' or move == 'copy':
+            copy_fun(str(base_file), str(full_path))
+        else:
+            try:
+                copy_fun(base_file.resolve(), path.join(full_path,
+                                                        path.split(Path(base_file))[1]))
+            except FileExistsError:
+                pass
+    
     # get the last part within the file
     class_name = path.split(class_dir)[1]
     for (files, folder_type) in files_type:
@@ -309,6 +339,6 @@ def copy_files(files_type, class_dir, output, prog_bar, move):
                 prog_bar.update()
             if type(f) == tuple:
                 for x in f:
-                    copy_fun(str(x), str(full_path))
+                    copyer(x, full_path)
             else:
-                copy_fun(str(f), str(full_path))
+                copyer(f, full_path)

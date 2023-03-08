@@ -97,8 +97,10 @@ Occasionally, you may have things that comprise more than a single file (e.g. pi
 Set `group_prefix` to the length of the group (e.g. `2`).
 But now _all_ files should be part of groups.
 
-Set `move=True` if you want to move the files instead of copying.
-
+Set  
+- `move=True` or `move='move'` if you want to move the files instead of copying.
+- `move=False` or `move='copy'` if you want to copy the files. (default behavior)
+- `move='symlink'` if you want to symlink(i.e create shortcuts `ln -s`) instead of copying
 ### CLI
 
 ```
@@ -114,6 +116,7 @@ Options:
     --oversample    enable oversampling of imbalanced datasets, works only with --fixed.
     --group_prefix  split files into equally-sized groups based on their prefix
     --move          move the files instead of copying
+    --symlink       symlink(create shortcut) the files instead of copying
 Example:
     splitfolders --ratio .8 .1 .1 -- folder_with_images
 ```

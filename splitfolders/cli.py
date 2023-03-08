@@ -5,7 +5,7 @@ from .split import fixed, ratio
 
 def run():
     parser = argparse.ArgumentParser(
-        description="Split folders with files (e.g. images) into training, validation and test(dataset) folders."
+        description="Split folders with files (e.g. images) by copying them into training, validation and test(dataset) folders."
     )
     parser.add_argument(
         "--output",
@@ -41,10 +41,16 @@ def run():
         default=None,
         help="split files into equally-sized groups based on their prefix",
     )
-    parser.add_argument(
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument(
         "--move",
         action="store_true",
         help="move the files instead of copying",
+    )
+    group.add_argument(
+        "--symlink",
+        action="store_true",
+        help="symlink(create shortcut) the files instead of copying",
     )
     parser.add_argument(
         "input",
@@ -53,6 +59,9 @@ def run():
 
     args = parser.parse_args()
 
+    if args.symlink:
+        args.move = 'symlink'
+    
     if args.ratio:
         ratio(
             args.input, args.output, args.seed, args.ratio, args.group_prefix, args.move
