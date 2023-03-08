@@ -183,7 +183,6 @@ def fixed(
             for f_orig in f_chosen:
                 new_name = f_orig.stem + "_" + str(i) + f_orig.suffix
                 f_dest = f_orig.with_name(new_name)
-                print(f'{f_orig}, {f_orig.stem}, {f_orig.suffix}, {f_dest}')
                 copyer(f_orig, f_dest)
 
 
