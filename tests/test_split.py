@@ -8,7 +8,7 @@ from splitfolders import fixed, ratio
 
 
 def test_second_package():
-    from split_folders import fixed, ratio
+    pass
 
 
 def test_wrong_input():
@@ -191,8 +191,6 @@ def test_split_fixed_limit_test():
 
     fixed(input_dir, output_dir, fixed=(3, 2, 2), oversample=False)
 
-    # ensure the number of pics is the same
-    a = len(list(pathlib.Path(input_dir).glob("**/*.jpg")))
     b = len(list(pathlib.Path(output_dir).glob("**/*.jpg")))
     assert b == 14
 

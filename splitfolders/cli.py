@@ -28,7 +28,12 @@ def run():
         "--fixed",
         nargs="+",
         type=int,
-        help="set the absolute number of items per validation/test set. The remaining items get to the training. e.g. for train/val/test `100 100` or for train/val `100`. Set 3 values, e.g. `300 100 100`, to limit the number of training values.",
+        help=(
+            "set the absolute number of items per validation/test set."
+            " The remaining items get to the training."
+            " e.g. for train/val/test `100 100` or for train/val `100`."
+            " Set 3 values, e.g. `300 100 100`, to limit the number of training values."
+        ),
     )
     parser.add_argument(
         "--oversample",
@@ -48,15 +53,17 @@ def run():
     )
     parser.add_argument(
         "input",
-        help="directory with the input data. The directory needs to have the labels as sub-directories. In those sub-directories are then the actual files that gets split.",
+        help=(
+            "directory with the input data. The directory needs to have the labels"
+            " as sub-directories. In those sub-directories are then the actual files"
+            " that gets split."
+        ),
     )
 
     args = parser.parse_args()
 
     if args.ratio:
-        ratio(
-            args.input, args.output, args.seed, args.ratio, args.group_prefix, args.move
-        )
+        ratio(args.input, args.output, args.seed, args.ratio, args.group_prefix, args.move)
     else:
         if args.fixed:
             fixed(
@@ -70,5 +77,6 @@ def run():
             )
         else:
             print(
-                "Please specify either your `--ratio` or your `--fixed` number of items for the split. see -h for more help."
+                "Please specify either your `--ratio` or your `--fixed` number of items"
+                " for the split. see -h for more help."
             )

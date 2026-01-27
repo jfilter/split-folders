@@ -1,1 +1,1 @@
-from splitfolders import *
+from splitfolders import *  # noqa: F403

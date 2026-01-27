@@ -32,10 +32,10 @@ into this resulting format:
             ...
 """
 
-from pathlib import Path
 import random
 import shutil
 from os import path
+from pathlib import Path
 
 from .utils import list_dirs, list_files
 
@@ -61,7 +61,9 @@ def check_input_format(input):
     dirs = list_dirs(input)
     if len(dirs) == 0:
         raise ValueError(
-            f'The input data is not in a right format. Within your folder "{input}" there are no directories. Consult the documentation how to the folder structure should look like.'
+            f'The input data is not in a right format. Within your folder "{input}"'
+            " there are no directories. Consult the documentation how to the folder"
+            " structure should look like."
         )
 
 
@@ -75,13 +77,13 @@ def ratio(
 ):
     if not round(sum(ratio), 5) == 1:  # round for floating imprecision
         raise ValueError("The sums of `ratio` is over 1.")
-    if not len(ratio) in (2, 3):
+    if len(ratio) not in (2, 3):
         raise ValueError("`ratio` should")
 
     check_input_format(input)
 
     if use_tqdm:
-        prog_bar = tqdm(desc=f"Copying files", unit=" files")
+        prog_bar = tqdm(desc="Copying files", unit=" files")
 
     for class_dir in list_dirs(input):
         split_class_dir_ratio(
@@ -110,18 +112,16 @@ def fixed(
     if isinstance(fixed, int):
         fixed = [fixed]
 
-    if not len(fixed) in (1, 2, 3):
+    if len(fixed) not in (1, 2, 3):
         raise ValueError("`fixed` should be an integer or a list of 2 or 3 integers")
 
     if len(fixed) == 3 and oversample:
-        raise ValueError(
-            "Using fixed with 3 values together with oversampling is not implemented."
-        )
+        raise ValueError("Using fixed with 3 values together with oversampling is not implemented.")
 
     check_input_format(input)
 
     if use_tqdm:
-        prog_bar = tqdm(desc=f"Copying files", unit=" files")
+        prog_bar = tqdm(desc="Copying files", unit=" files")
 
     classes_dirs = list_dirs(input)
     num_items = []
@@ -163,7 +163,7 @@ def fixed(
         for i in range(num_max_items - num_items):
             f_chosen = random.choice(train_files)
 
-            if not type(f_chosen) is tuple:
+            if type(f_chosen) is not tuple:
                 f_chosen = (f_chosen,)
 
             for f_orig in f_chosen:
@@ -183,13 +183,7 @@ def group_by_prefix(files, len_pairs):
             continue
         f_sub = f.name
         for _ in range(len(f_sub)):
-            matches = [
-                x
-                for x in files
-                if x.name not in results_set
-                and x.name.startswith(f_sub)
-                and f.name != x.name
-            ]
+            matches = [x for x in files if x.name not in results_set and x.name.startswith(f_sub) and f.name != x.name]
             if len(matches) == len_pairs - 1:
                 results.append((f, *matches))
                 results_set.update((f.name, *[x.name for x in matches]))
@@ -198,15 +192,14 @@ def group_by_prefix(files, len_pairs):
                 f_sub = f_sub[:-1]
             else:
                 raise ValueError(
-                    f"The length of pairs has to be equal. Coudn't find {len_pairs - 1} matches for {f}. Found {len(matches)} matches."
+                    f"The length of pairs has to be equal. Coudn't find {len_pairs - 1}"
+                    f" matches for {f}. Found {len(matches)} matches."
                 )
         else:
             raise ValueError(f"No adequate matches found for {f}.")
 
     if len(results_set) != len(files):
-        raise ValueError(
-            f"Could not find enough matches ({len(results_set)}) for all files ({len(files)})"
-        )
+        raise ValueError(f"Could not find enough matches ({len(results_set)}) for all files ({len(files)})")
     return results
 
 
@@ -248,7 +241,10 @@ def split_class_dir_fixed(class_dir, output, fixed, seed, prog_bar, group_prefix
 
     if not len(files) >= sum(fixed):
         raise ValueError(
-            f'The number of samples in class "{class_dir.stem}" are too few. There are only {len(files)} samples available but your fixed parameter {fixed} requires at least {sum(fixed)} files. You may want to split your classes by ratio.'
+            f'The number of samples in class "{class_dir.stem}" are too few.'
+            f" There are only {len(files)} samples available but your fixed parameter"
+            f" {fixed} requires at least {sum(fixed)} files."
+            " You may want to split your classes by ratio."
         )
 
     # the data was shuffeld already
@@ -275,9 +271,7 @@ def split_files(files, split_train_idx, split_val_idx, use_test, max_test=None):
     Splits the files along the provided indices
     """
     files_train = files[:split_train_idx]
-    files_val = (
-        files[split_train_idx:split_val_idx] if use_test else files[split_train_idx:]
-    )
+    files_val = files[split_train_idx:split_val_idx] if use_test else files[split_train_idx:]
 
     li = [(files_train, "train"), (files_val, "val")]
 
@@ -300,14 +294,14 @@ def copy_files(files_type, class_dir, output, prog_bar, move):
 
     # get the last part within the file
     class_name = path.split(class_dir)[1]
-    for (files, folder_type) in files_type:
+    for files, folder_type in files_type:
         full_path = path.join(output, folder_type, class_name)
 
         Path(full_path).mkdir(parents=True, exist_ok=True)
         for f in files:
-            if not prog_bar is None:
+            if prog_bar is not None:
                 prog_bar.update()
-            if type(f) == tuple:
+            if isinstance(f, tuple):
                 for x in f:
                     copy_fun(str(x), str(full_path))
             else:

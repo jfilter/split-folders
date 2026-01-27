@@ -12,8 +12,4 @@ def list_files(directory):
     """
     Returns all files in a given directory
     """
-    return [
-        f
-        for f in Path(directory).iterdir()
-        if f.is_file() and not f.name.startswith(".")
-    ]
+    return [f for f in Path(directory).iterdir() if f.is_file() and not f.name.startswith(".")]

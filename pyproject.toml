@@ -2,11 +2,10 @@
 [tool.poetry]
 authors = ["Johannes Filter <hi@jfilter.de>"]
 classifiers = [
-  "Programming Language :: Python :: 3.6",
-  "Programming Language :: Python :: 3.7",
-  "Programming Language :: Python :: 3.8",
-  "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
   "License :: OSI Approved :: MIT License",
   "Topic :: Utilities",
 ]
@@ -27,18 +26,24 @@ split_folders = "splitfolders.cli:run"
 splitfolders = "splitfolders.cli:run"
 
 [tool.poetry.dependencies]
-python = ">=3.6"
+python = ">=3.10"
 tqdm = {version = "*", optional = true}
 
-[tool.poetry.dev-dependencies]
-black = {version = "*", allow-prereleases = true, python = ">=3.6"}
-pylint = "*"
+[tool.poetry.group.dev.dependencies]
 pytest = "*"
+ruff = "*"
 tqdm = "*"
 
 [tool.poetry.extras]
 full = ["tqdm"]
 
+[tool.ruff]
+target-version = "py310"
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
+
 [build-system]
-build-backend = "poetry.masonry.api"
-requires = ["poetry>=0.12"]
+build-backend = "poetry.core.masonry.api"
+requires = ["poetry-core>=1.0.0"]
