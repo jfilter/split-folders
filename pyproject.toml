@@ -1,41 +1,42 @@
-
-[tool.poetry]
-authors = ["Johannes Filter <hi@jfilter.de>"]
+[project]
+name = "split-folders"
+version = "0.5.1"
+description = "Split folders with files (e.g. images) into training, validation and test (dataset) folders."
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+authors = [
+  {name = "Johannes Filter", email = "hi@jfilter.de"},
+]
+keywords = ["machine-learning", "training-validation-test", "datasets", "folders"]
 classifiers = [
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
-  "License :: OSI Approved :: MIT License",
   "Topic :: Utilities",
 ]
-description = "Split folders with files (e.g. images) into training, validation and test (dataset) folders."
-keywords = ["machine-learning", "training-validation-test", "datasets", "folders"]
-license = "MIT"
-name = "split_folders"
-packages = [
-  {include = "splitfolders"},
-]
-readme = "README.md"
-repository = "https://github.com/jfilter/split-folders"
-version = "0.5.1"
 
-[tool.poetry.scripts]
+[project.optional-dependencies]
+full = ["tqdm"]
+
+[project.scripts]
 split-folders = "splitfolders.cli:run"
 split_folders = "splitfolders.cli:run"
 splitfolders = "splitfolders.cli:run"
 
-[tool.poetry.dependencies]
-python = ">=3.10"
-tqdm = {version = "*", optional = true}
+[project.urls]
+Repository = "https://github.com/jfilter/split-folders"
+
+[tool.poetry]
+packages = [
+  {include = "splitfolders"},
+]
 
 [tool.poetry.group.dev.dependencies]
 pytest = "*"
 ruff = "*"
 tqdm = "*"
-
-[tool.poetry.extras]
-full = ["tqdm"]
 
 [tool.ruff]
 target-version = "py310"
