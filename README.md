@@ -92,6 +92,11 @@ splitfolders.ratio("input_folder", output="output",
 splitfolders.fixed("input_folder", output="output",
     seed=1337, fixed=(100, 100), oversample=False, group_prefix=None, formats=None, move=False) # default values
 
+# Use `fixed="auto"` with oversampling to auto-compute the val size from the smallest class.
+# Allocates ~20% of the smallest class to validation, rest to training.
+splitfolders.fixed("input_folder", output="output",
+    seed=1337, fixed="auto", oversample=True)
+
 # Split into k folds for cross-validation.
 # Each fold directory contains train/ and val/ subdirectories.
 # Uses symlinks by default to avoid k× disk usage.
@@ -122,6 +127,7 @@ Options:
     --fixed         set the absolute number of items per validation/test set. The remaining items constitute
                     the training set. e.g. for train/val/test `100 100` or for train/val `100`.
                     Set 3 values, e.g. `300 100 100`, to limit the number of training values.
+                    Use `auto` to auto-compute from the smallest class (requires --oversample).
     --kfold         split into k folds for cross-validation. e.g. `5` for 5-fold CV. Uses symlinks by default.
     --seed          set seed value for shuffling the items. defaults to 1337.
     --oversample    enable oversampling of imbalanced datasets, works only with --fixed.

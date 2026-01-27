@@ -442,6 +442,34 @@ def test_kfold_formats():
     assert txt_count == 0
 
 
+def test_split_fixed_auto():
+    input_dir = os.path.join(os.path.dirname(__file__), "imgs")
+    output_dir = os.path.join(os.path.dirname(__file__), "output")
+
+    shutil.rmtree(output_dir, ignore_errors=True)
+
+    fixed(input_dir, output_dir, fixed="auto", oversample=True)
+
+    # output should have train and val directories
+    assert pathlib.Path(output_dir, "train").is_dir()
+    assert pathlib.Path(output_dir, "val").is_dir()
+
+    # every class should have files in both train and val
+    for class_name in ("cats", "dogs"):
+        train_count = len(list(pathlib.Path(output_dir, "train", class_name).glob("*")))
+        val_count = len(list(pathlib.Path(output_dir, "val", class_name).glob("*")))
+        assert train_count > 0
+        assert val_count > 0
+
+
+def test_split_fixed_auto_no_oversample():
+    input_dir = os.path.join(os.path.dirname(__file__), "imgs")
+    output_dir = os.path.join(os.path.dirname(__file__), "output")
+
+    with pytest.raises(ValueError, match="requires `oversample=True`"):
+        fixed(input_dir, output_dir, fixed="auto", oversample=False)
+
+
 def test_kfold_invalid():
     input_dir = os.path.join(os.path.dirname(__file__), "imgs")
     output_dir = os.path.join(os.path.dirname(__file__), "output")

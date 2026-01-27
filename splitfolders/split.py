@@ -128,17 +128,33 @@ def ratio(input, output="output", seed=1337, ratio=(0.8, 0.1, 0.1), group_prefix
 def fixed(
     input, output="output", seed=1337, fixed=(100, 100), oversample=False, group_prefix=None, move=False, formats=None
 ):
-    if isinstance(fixed, int):
-        fixed = [fixed]
-
-    if len(fixed) not in (1, 2, 3):
-        raise ValueError("`fixed` should be an integer or a list of 2 or 3 integers")
-
-    if len(fixed) == 3 and oversample:
-        raise ValueError("Using fixed with 3 values together with oversampling is not implemented.")
-
     check_input_format(input)
     valid_extensions(formats)
+
+    if fixed == "auto":
+        if not oversample:
+            raise ValueError(
+                '`fixed="auto"` requires `oversample=True`. For non-oversampled splits, use `ratio` instead.'
+            )
+        # Count files per class and derive fixed from the smallest class
+        classes_dirs = list_dirs(input)
+        counts = []
+        for class_dir in classes_dirs:
+            files = list_files(class_dir, formats)
+            if group_prefix is not None:
+                files = group_by_prefix(files, group_prefix)
+            counts.append(len(files))
+        min_count = min(counts)
+        fixed = [max(1, min_count // 5)]
+    else:
+        if isinstance(fixed, int):
+            fixed = [fixed]
+
+        if len(fixed) not in (1, 2, 3):
+            raise ValueError("`fixed` should be an integer or a list of 2 or 3 integers")
+
+        if len(fixed) == 3 and oversample:
+            raise ValueError("Using fixed with 3 values together with oversampling is not implemented.")
 
     if use_tqdm:
         prog_bar = tqdm(desc="Copying files", unit=" files")

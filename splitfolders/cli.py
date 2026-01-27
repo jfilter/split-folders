@@ -30,12 +30,13 @@ def run():
     parser.add_argument(
         "--fixed",
         nargs="+",
-        type=int,
+        type=str,
         help=(
             "set the absolute number of items per validation/test set."
             " The remaining items get to the training."
             " e.g. for train/val/test `100 100` or for train/val `100`."
             " Set 3 values, e.g. `300 100 100`, to limit the number of training values."
+            ' Use `auto` to auto-compute from the smallest class (requires --oversample).'
         ),
     )
     parser.add_argument(
@@ -90,11 +91,15 @@ def run():
     if args.ratio:
         ratio(args.input, args.output, args.seed, args.ratio, args.group_prefix, args.move, args.formats)
     elif args.fixed:
+        if args.fixed == ["auto"]:
+            fixed_value = "auto"
+        else:
+            fixed_value = [int(x) for x in args.fixed]
         fixed(
             args.input,
             args.output,
             args.seed,
-            args.fixed,
+            fixed_value,
             args.oversample,
             args.group_prefix,
             args.move,
