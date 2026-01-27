@@ -32,9 +32,9 @@ into this resulting format:
             ...
 """
 
+import os
 import random
 import shutil
-from os import path, symlink
 from pathlib import Path
 
 from .utils import list_dirs, list_files
@@ -65,6 +65,32 @@ def check_input_format(input):
             " there are no directories. Consult the documentation how to the folder"
             " structure should look like."
         )
+
+
+def _get_copy_fn(move):
+    """Return a function(src, dst_dir) that copies/moves/symlinks a file into dst_dir."""
+    if move is True or move == "move":
+        base_fn = shutil.move
+    elif move is False or move == "copy":
+        base_fn = shutil.copy2
+    elif move == "symlink":
+        base_fn = None  # handled below
+    else:
+        raise ValueError(f"Invalid value for move: {move!r}. Use True, False, or 'symlink'.")
+
+    def copy_fn(src, dst_dir):
+        src = Path(src)
+        dst_dir = Path(dst_dir)
+        if move == "symlink":
+            dst = dst_dir / src.name
+            try:
+                os.symlink(src.resolve(), dst)
+            except FileExistsError:
+                pass
+        else:
+            base_fn(str(src), str(dst_dir))
+
+    return copy_fn
 
 
 def valid_extensions(formats):
@@ -138,25 +164,9 @@ def fixed(
     if use_tqdm:
         iteration = tqdm(iteration, desc="Oversampling", unit=" classes")
 
-    if move == "move" or move is True:
-        copy_fun = shutil.move
-    elif move == "copy" or move is False:
-        copy_fun = shutil.copy2
-    else:
-        copy_fun = symlink
-
-    def copyer(f_orig, f_dest):
-        if isinstance(move, bool) or move == "move" or move == "copy":
-            copy_fun(str(f_orig), str(f_dest))
-        else:
-            try:
-                copy_fun(f_orig.resolve(), f_dest.resolve())
-            except FileExistsError:
-                pass
-
     for num_items, class_dir in iteration:
-        class_name = path.split(class_dir)[1]
-        full_path = path.join(output, "train", class_name)
+        class_name = Path(class_dir).name
+        full_path = Path(output) / "train" / class_name
         train_files = list_files(full_path, formats)
 
         if group_prefix is not None:
@@ -165,13 +175,21 @@ def fixed(
         for i in range(num_max_items - num_items):
             f_chosen = random.choice(train_files)
 
-            if type(f_chosen) is not tuple:
+            if not isinstance(f_chosen, tuple):
                 f_chosen = (f_chosen,)
 
             for f_orig in f_chosen:
                 new_name = f_orig.stem + "_" + str(i) + f_orig.suffix
                 f_dest = f_orig.with_name(new_name)
-                copyer(f_orig, f_dest)
+                if move == "symlink":
+                    try:
+                        os.symlink(f_orig.resolve(), f_dest)
+                    except FileExistsError:
+                        pass
+                elif move is True or move == "move":
+                    shutil.move(str(f_orig), str(f_dest))
+                else:
+                    shutil.copy2(str(f_orig), str(f_dest))
 
 
 def group_by_prefix(files, len_pairs):
@@ -291,34 +309,18 @@ def copy_files(files_type, class_dir, output, prog_bar, move):
     """
     Copies the files from the input folder to the output folder
     """
+    copy_fn = _get_copy_fn(move)
 
-    if move == "move" or move is True:
-        copy_fun = shutil.move
-    elif move == "copy" or move is False:
-        copy_fun = shutil.copy2
-    else:
-        copy_fun = symlink
-
-    def copyer(base_file, full_path):
-        if isinstance(move, bool) or move == "move" or move == "copy":
-            copy_fun(str(base_file), str(full_path))
-        else:
-            try:
-                copy_fun(base_file.resolve(), path.join(full_path, path.split(Path(base_file))[1]))
-            except FileExistsError:
-                pass
-
-    # get the last part within the file
-    class_name = path.split(class_dir)[1]
+    class_name = Path(class_dir).name
     for files, folder_type in files_type:
-        full_path = path.join(output, folder_type, class_name)
+        full_path = Path(output) / folder_type / class_name
 
-        Path(full_path).mkdir(parents=True, exist_ok=True)
+        full_path.mkdir(parents=True, exist_ok=True)
         for f in files:
             if prog_bar is not None:
                 prog_bar.update()
             if isinstance(f, tuple):
                 for x in f:
-                    copyer(x, full_path)
+                    copy_fn(x, full_path)
             else:
-                copyer(f, full_path)
+                copy_fn(f, full_path)
