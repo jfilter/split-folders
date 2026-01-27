@@ -5,7 +5,10 @@ from .split import fixed, ratio
 
 def run():
     parser = argparse.ArgumentParser(
-        description="Split folders with files (e.g. images) by copying them into training, validation and test(dataset) folders."
+        description=(
+            "Split folders with files (e.g. images) by copying them"
+            " into training, validation and test (dataset) folders."
+        )
     )
     parser.add_argument(
         "--output",
@@ -65,14 +68,21 @@ def run():
             " that gets split."
         ),
     )
+    parser.add_argument(
+        "--formats",
+        nargs="+",
+        type=str,
+        default=None,
+        help="specify the file format(s) which should be considered for spliting the data e.g. `.png .jpeg .jpg`",
+    )
 
     args = parser.parse_args()
 
     if args.symlink:
-        args.move = 'symlink'
-    
+        args.move = "symlink"
+
     if args.ratio:
-        ratio(args.input, args.output, args.seed, args.ratio, args.group_prefix, args.move)
+        ratio(args.input, args.output, args.seed, args.ratio, args.group_prefix, args.move, args.formats)
     else:
         if args.fixed:
             fixed(
@@ -83,6 +93,7 @@ def run():
                 args.oversample,
                 args.group_prefix,
                 args.move,
+                args.formats,
             )
         else:
             print(
