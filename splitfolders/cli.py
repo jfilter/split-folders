@@ -1,6 +1,6 @@
 import argparse
 
-from .split import fixed, ratio
+from .split import fixed, kfold, ratio
 
 
 def run():
@@ -37,6 +37,12 @@ def run():
             " e.g. for train/val/test `100 100` or for train/val `100`."
             " Set 3 values, e.g. `300 100 100`, to limit the number of training values."
         ),
+    )
+    parser.add_argument(
+        "--kfold",
+        type=int,
+        default=None,
+        help="split into k folds for cross-validation. e.g. `5` for 5-fold CV. Each fold has train/ and val/ subdirs.",
     )
     parser.add_argument(
         "--oversample",
@@ -83,20 +89,26 @@ def run():
 
     if args.ratio:
         ratio(args.input, args.output, args.seed, args.ratio, args.group_prefix, args.move, args.formats)
+    elif args.fixed:
+        fixed(
+            args.input,
+            args.output,
+            args.seed,
+            args.fixed,
+            args.oversample,
+            args.group_prefix,
+            args.move,
+            args.formats,
+        )
+    elif args.kfold:
+        kfold(
+            args.input,
+            args.output,
+            args.seed,
+            args.kfold,
+            args.group_prefix,
+            args.move if args.move else "symlink",
+            args.formats,
+        )
     else:
-        if args.fixed:
-            fixed(
-                args.input,
-                args.output,
-                args.seed,
-                args.fixed,
-                args.oversample,
-                args.group_prefix,
-                args.move,
-                args.formats,
-            )
-        else:
-            print(
-                "Please specify either your `--ratio` or your `--fixed` number of items"
-                " for the split. see -h for more help."
-            )
+        print("Please specify either your `--ratio`, `--fixed`, or `--kfold` for the split. see -h for more help.")

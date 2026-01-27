@@ -4,7 +4,7 @@ import shutil
 
 import pytest
 
-from splitfolders import fixed, ratio
+from splitfolders import fixed, kfold, ratio
 
 
 def test_second_package():
@@ -251,6 +251,95 @@ def test_split_fixed_oversample_prefix():
     assert a != b
 
 
+def test_split_ratio_symlink():
+    input_dir = os.path.join(os.path.dirname(__file__), "imgs")
+    output_dir = os.path.join(os.path.dirname(__file__), "output")
+
+    shutil.rmtree(output_dir, ignore_errors=True)
+
+    ratio(input_dir, output_dir, move="symlink")
+
+    # ensure the number of pics is the same
+    a = len(list(pathlib.Path(input_dir).glob("**/*.jpg")))
+    b = len(list(pathlib.Path(output_dir).glob("**/*.jpg")))
+    assert a == b
+
+    # ensure all output files are symlinks
+    for f in pathlib.Path(output_dir).rglob("*.jpg"):
+        assert f.is_symlink()
+
+
+def test_split_fixed_symlink():
+    input_dir = os.path.join(os.path.dirname(__file__), "imgs")
+    output_dir = os.path.join(os.path.dirname(__file__), "output")
+
+    shutil.rmtree(output_dir, ignore_errors=True)
+
+    fixed(input_dir, output_dir, fixed=(2, 2), move="symlink")
+
+    # ensure the number of pics is the same
+    a = len(list(pathlib.Path(input_dir).glob("**/*.jpg")))
+    b = len(list(pathlib.Path(output_dir).glob("**/*.jpg")))
+    assert a == b
+
+    # ensure all output files are symlinks
+    for f in pathlib.Path(output_dir).rglob("*.jpg"):
+        assert f.is_symlink()
+
+
+def test_split_ratio_formats():
+    input_dir = os.path.join(os.path.dirname(__file__), "imgs_texts")
+    output_dir = os.path.join(os.path.dirname(__file__), "output")
+
+    shutil.rmtree(output_dir, ignore_errors=True)
+
+    ratio(input_dir, output_dir, formats=[".jpg"])
+
+    # only jpg files should be in output
+    jpg_count = len(list(pathlib.Path(output_dir).glob("**/*.jpg")))
+    txt_count = len(list(pathlib.Path(output_dir).glob("**/*.txt")))
+    assert jpg_count > 0
+    assert txt_count == 0
+
+
+def test_split_fixed_formats():
+    input_dir = os.path.join(os.path.dirname(__file__), "imgs_texts")
+    output_dir = os.path.join(os.path.dirname(__file__), "output")
+
+    shutil.rmtree(output_dir, ignore_errors=True)
+
+    fixed(input_dir, output_dir, fixed=(1, 1), formats=[".txt"])
+
+    # only txt files should be in output
+    jpg_count = len(list(pathlib.Path(output_dir).glob("**/*.jpg")))
+    txt_count = len(list(pathlib.Path(output_dir).glob("**/*.txt")))
+    assert txt_count > 0
+    assert jpg_count == 0
+
+
+def test_split_ratio_formats_multiple():
+    input_dir = os.path.join(os.path.dirname(__file__), "imgs_texts")
+    output_dir = os.path.join(os.path.dirname(__file__), "output")
+
+    shutil.rmtree(output_dir, ignore_errors=True)
+
+    ratio(input_dir, output_dir, formats=[".jpg", ".txt"])
+
+    # both jpg and txt files should be in output
+    jpg_count = len(list(pathlib.Path(output_dir).glob("**/*.jpg")))
+    txt_count = len(list(pathlib.Path(output_dir).glob("**/*.txt")))
+    assert jpg_count > 0
+    assert txt_count > 0
+
+
+def test_invalid_formats():
+    input_dir = os.path.join(os.path.dirname(__file__), "imgs")
+    output_dir = os.path.join(os.path.dirname(__file__), "output")
+
+    with pytest.raises(ValueError):
+        ratio(input_dir, output_dir, formats=["jpg"])
+
+
 def test_split_ratio_prefix_error_1():
     input_dir = os.path.join(os.path.dirname(__file__), "imgs_texts_error_1")
     output_dir = os.path.join(os.path.dirname(__file__), "output")
@@ -269,3 +358,93 @@ def test_split_ratio_prefix_error_2():
 
     with pytest.raises(ValueError):
         ratio(input_dir, output_dir, group_prefix=2)
+
+
+def test_kfold_basic():
+    input_dir = os.path.join(os.path.dirname(__file__), "imgs")
+    output_dir = os.path.join(os.path.dirname(__file__), "output")
+
+    shutil.rmtree(output_dir, ignore_errors=True)
+
+    kfold(input_dir, output_dir, k=5, move=False)
+
+    # verify 5 fold directories created
+    fold_dirs = sorted(pathlib.Path(output_dir).iterdir())
+    assert len(fold_dirs) == 5
+
+    input_count = len(list(pathlib.Path(input_dir).glob("**/*.jpg")))
+
+    for fold_dir in fold_dirs:
+        # each fold should have train/ and val/
+        assert (fold_dir / "train").is_dir()
+        assert (fold_dir / "val").is_dir()
+
+        # train + val should equal input count
+        train_count = len(list((fold_dir / "train").rglob("*.jpg")))
+        val_count = len(list((fold_dir / "val").rglob("*.jpg")))
+        assert train_count + val_count == input_count
+
+        # no overlap between train and val
+        train_files = {f.name for f in (fold_dir / "train").rglob("*.jpg")}
+        val_files = {f.name for f in (fold_dir / "val").rglob("*.jpg")}
+        assert train_files.isdisjoint(val_files)
+
+
+def test_kfold_3():
+    input_dir = os.path.join(os.path.dirname(__file__), "imgs")
+    output_dir = os.path.join(os.path.dirname(__file__), "output")
+
+    shutil.rmtree(output_dir, ignore_errors=True)
+
+    kfold(input_dir, output_dir, k=3, move=False)
+
+    fold_dirs = sorted(pathlib.Path(output_dir).iterdir())
+    assert len(fold_dirs) == 3
+
+
+def test_kfold_symlink():
+    input_dir = os.path.join(os.path.dirname(__file__), "imgs")
+    output_dir = os.path.join(os.path.dirname(__file__), "output")
+
+    shutil.rmtree(output_dir, ignore_errors=True)
+
+    kfold(input_dir, output_dir, k=3)
+
+    # default is symlink
+    for f in pathlib.Path(output_dir).rglob("*.jpg"):
+        assert f.is_symlink()
+
+
+def test_kfold_copy():
+    input_dir = os.path.join(os.path.dirname(__file__), "imgs")
+    output_dir = os.path.join(os.path.dirname(__file__), "output")
+
+    shutil.rmtree(output_dir, ignore_errors=True)
+
+    kfold(input_dir, output_dir, k=3, move=False)
+
+    # move=False means real copies, not symlinks
+    for f in pathlib.Path(output_dir).rglob("*.jpg"):
+        assert not f.is_symlink()
+
+
+def test_kfold_formats():
+    input_dir = os.path.join(os.path.dirname(__file__), "imgs_texts")
+    output_dir = os.path.join(os.path.dirname(__file__), "output")
+
+    shutil.rmtree(output_dir, ignore_errors=True)
+
+    kfold(input_dir, output_dir, k=3, move=False, formats=[".jpg"])
+
+    jpg_count = len(list(pathlib.Path(output_dir).rglob("*.jpg")))
+    txt_count = len(list(pathlib.Path(output_dir).rglob("*.txt")))
+    assert jpg_count > 0
+    assert txt_count == 0
+
+
+def test_kfold_invalid():
+    input_dir = os.path.join(os.path.dirname(__file__), "imgs")
+    output_dir = os.path.join(os.path.dirname(__file__), "output")
+
+    with pytest.raises(ValueError):
+        kfold(input_dir, output_dir, k=1)

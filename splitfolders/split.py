@@ -192,6 +192,49 @@ def fixed(
                     shutil.copy2(str(f_orig), str(f_dest))
 
 
+def kfold(input, output="output", seed=1337, k=5, group_prefix=None, move="symlink", formats=None):
+    if k < 2:
+        raise ValueError("`k` must be 2 or greater.")
+
+    check_input_format(input)
+    valid_extensions(formats)
+
+    if use_tqdm:
+        prog_bar = tqdm(desc="Copying files", unit=" files")
+
+    for class_dir in list_dirs(input):
+        split_class_dir_kfold(class_dir, output, k, seed, prog_bar if use_tqdm else None, group_prefix, move, formats)
+
+    if use_tqdm:
+        prog_bar.close()
+
+
+def split_class_dir_kfold(class_dir, output, k, seed, prog_bar, group_prefix, move, formats):
+    """
+    Splits a class folder into k folds for cross-validation.
+    Each fold directory gets train/ and val/ subdirectories.
+    """
+    files = setup_files(class_dir, seed, group_prefix, formats)
+
+    # Partition files into k roughly equal chunks
+    fold_size = len(files) // k
+    remainder = len(files) % k
+    partitions = []
+    idx = 0
+    for i in range(k):
+        size = fold_size + (1 if i < remainder else 0)
+        partitions.append(files[idx : idx + size])
+        idx += size
+
+    # For each fold, val = partition i, train = all other partitions
+    for i in range(k):
+        val_files = partitions[i]
+        train_files = [f for j, part in enumerate(partitions) if j != i for f in part]
+        fold_output = str(Path(output) / f"fold_{i + 1}")
+        li = [(train_files, "train"), (val_files, "val")]
+        copy_files(li, class_dir, fold_output, prog_bar, move)
+
+
 def group_by_prefix(files, len_pairs):
     """
     Split files into groups of len `len_pairs` based on their prefix.

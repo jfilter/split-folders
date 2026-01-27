@@ -91,6 +91,12 @@ splitfolders.ratio("input_folder", output="output",
 # Set 3 values, e.g. `(300, 100, 100)`, to limit the number of training values.
 splitfolders.fixed("input_folder", output="output",
     seed=1337, fixed=(100, 100), oversample=False, group_prefix=None, formats=None, move=False) # default values
+
+# Split into k folds for cross-validation.
+# Each fold directory contains train/ and val/ subdirectories.
+# Uses symlinks by default to avoid k× disk usage.
+splitfolders.kfold("input_folder", output="output",
+    seed=1337, k=5, group_prefix=None, formats=None, move="symlink") # default values
 ```
 
 Occasionally, you may have things that comprise more than a single file (e.g. picture (.png) + annotation (.txt)).
@@ -109,13 +115,14 @@ Set
 
 ```
 Usage:
-    splitfolders [--output] [--ratio] [--fixed] [--seed] [--oversample] [--group_prefix] [--formats] [--move] folder_with_images
+    splitfolders [--output] [--ratio] [--fixed] [--kfold] [--seed] [--oversample] [--group_prefix] [--formats] [--move] folder_with_images
 Options:
     --output        path to the output folder. defaults to `output`. Get created if non-existent.
     --ratio         the ratio to split. e.g. for train/val/test `.8 .1 .1 --` or for train/val `.8 .2 --`.
     --fixed         set the absolute number of items per validation/test set. The remaining items constitute
                     the training set. e.g. for train/val/test `100 100` or for train/val `100`.
                     Set 3 values, e.g. `300 100 100`, to limit the number of training values.
+    --kfold         split into k folds for cross-validation. e.g. `5` for 5-fold CV. Uses symlinks by default.
     --seed          set seed value for shuffling the items. defaults to 1337.
     --oversample    enable oversampling of imbalanced datasets, works only with --fixed.
     --group_prefix  split files into equally-sized groups based on their prefix
@@ -124,6 +131,7 @@ Options:
     --symlink       symlink(create shortcut) the files instead of copying
 Example:
     splitfolders --ratio .8 .1 .1 -- folder_with_images
+    splitfolders --kfold 5 folder_with_images
 ```
 
 Because of some [Python quirks](https://github.com/jfilter/split-folders/issues/19) you have to prepend ` --` after using `--ratio`.
