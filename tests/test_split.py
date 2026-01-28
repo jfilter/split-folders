@@ -949,15 +949,10 @@ def test_no_shuffle_preserves_order():
     # Collect all input files sorted, per class
     for class_name in ("cats", "dogs"):
         input_files = sorted(
-            f.name for f in pathlib.Path(input_dir, class_name).iterdir()
-            if f.is_file() and not f.name.startswith(".")
+            f.name for f in pathlib.Path(input_dir, class_name).iterdir() if f.is_file() and not f.name.startswith(".")
         )
-        train_files = sorted(
-            f.name for f in pathlib.Path(output_dir, "train", class_name).iterdir()
-        )
-        val_files = sorted(
-            f.name for f in pathlib.Path(output_dir, "val", class_name).iterdir()
-        )
+        train_files = sorted(f.name for f in pathlib.Path(output_dir, "train", class_name).iterdir())
+        val_files = sorted(f.name for f in pathlib.Path(output_dir, "val", class_name).iterdir())
 
         # With no shuffle, the split boundary should be consistent:
         # all files end up somewhere and no file is lost

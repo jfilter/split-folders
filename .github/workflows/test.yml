@@ -3,7 +3,18 @@ name: Test
 on: [push, pull_request, workflow_dispatch]
 
 jobs:
-    build:
+    lint:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-python@v5
+              with:
+                  python-version: "3.12"
+            - run: pip install ruff
+            - run: ruff check splitfolders/ tests/
+            - run: ruff format --check splitfolders/ tests/
+
+    test:
         runs-on: ${{ matrix.os }}
         strategy:
             matrix:

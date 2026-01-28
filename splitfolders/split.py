@@ -111,8 +111,15 @@ def valid_extensions(formats):
 
 
 def ratio(
-    input, output="output", seed=1337, ratio=(0.8, 0.1, 0.1),
-    group_prefix=None, group=None, move=False, formats=None, shuffle=True,
+    input,
+    output="output",
+    seed=1337,
+    ratio=(0.8, 0.1, 0.1),
+    group_prefix=None,
+    group=None,
+    move=False,
+    formats=None,
+    shuffle=True,
 ):
     if not round(sum(ratio), 5) == 1:  # round for floating imprecision
         raise ValueError("The sums of `ratio` is over 1.")
@@ -127,18 +134,41 @@ def ratio(
 
     if group == "sibling":
         split_sibling_dirs_ratio(
-            input, output, ratio, seed, prog_bar if use_tqdm else None, move, formats, shuffle,
+            input,
+            output,
+            ratio,
+            seed,
+            prog_bar if use_tqdm else None,
+            move,
+            formats,
+            shuffle,
         )
     elif _is_flat(input):
         split_flat_dir_ratio(
-            input, output, ratio, seed, prog_bar if use_tqdm else None,
-            group_prefix, group, move, formats, shuffle,
+            input,
+            output,
+            ratio,
+            seed,
+            prog_bar if use_tqdm else None,
+            group_prefix,
+            group,
+            move,
+            formats,
+            shuffle,
         )
     else:
         for class_dir in list_dirs(input):
             split_class_dir_ratio(
-                class_dir, output, ratio, seed, prog_bar if use_tqdm else None,
-                group_prefix, group, move, formats, shuffle,
+                class_dir,
+                output,
+                ratio,
+                seed,
+                prog_bar if use_tqdm else None,
+                group_prefix,
+                group,
+                move,
+                formats,
+                shuffle,
             )
 
     if use_tqdm:
@@ -146,8 +176,16 @@ def ratio(
 
 
 def fixed(
-    input, output="output", seed=1337, fixed=(100, 100), oversample=False,
-    group_prefix=None, group=None, move=False, formats=None, shuffle=True,
+    input,
+    output="output",
+    seed=1337,
+    fixed=(100, 100),
+    oversample=False,
+    group_prefix=None,
+    group=None,
+    move=False,
+    formats=None,
+    shuffle=True,
 ):
     check_input_format(input, allow_flat=(group != "sibling"))
     valid_extensions(formats)
@@ -189,7 +227,14 @@ def fixed(
 
     if group == "sibling":
         split_sibling_dirs_fixed(
-            input, output, fixed, seed, prog_bar if use_tqdm else None, move, formats, shuffle,
+            input,
+            output,
+            fixed,
+            seed,
+            prog_bar if use_tqdm else None,
+            move,
+            formats,
+            shuffle,
         )
         if use_tqdm:
             prog_bar.close()
@@ -197,8 +242,16 @@ def fixed(
 
     if flat:
         split_flat_dir_fixed(
-            input, output, fixed, seed, prog_bar if use_tqdm else None,
-            group_prefix, group, move, formats, shuffle,
+            input,
+            output,
+            fixed,
+            seed,
+            prog_bar if use_tqdm else None,
+            group_prefix,
+            group,
+            move,
+            formats,
+            shuffle,
         )
         if use_tqdm:
             prog_bar.close()
@@ -209,8 +262,16 @@ def fixed(
     for class_dir in classes_dirs:
         num_items.append(
             split_class_dir_fixed(
-                class_dir, output, fixed, seed, prog_bar if use_tqdm else None,
-                group_prefix, group, move, formats, shuffle,
+                class_dir,
+                output,
+                fixed,
+                seed,
+                prog_bar if use_tqdm else None,
+                group_prefix,
+                group,
+                move,
+                formats,
+                shuffle,
             )
         )
 
@@ -253,8 +314,15 @@ def fixed(
 
 
 def kfold(
-    input, output="output", seed=1337, k=5, group_prefix=None, group=None,
-    move="symlink", formats=None, shuffle=True,
+    input,
+    output="output",
+    seed=1337,
+    k=5,
+    group_prefix=None,
+    group=None,
+    move="symlink",
+    formats=None,
+    shuffle=True,
 ):
     if k < 2:
         raise ValueError("`k` must be 2 or greater.")
@@ -267,18 +335,41 @@ def kfold(
 
     if group == "sibling":
         split_sibling_dirs_kfold(
-            input, output, k, seed, prog_bar if use_tqdm else None, move, formats, shuffle,
+            input,
+            output,
+            k,
+            seed,
+            prog_bar if use_tqdm else None,
+            move,
+            formats,
+            shuffle,
         )
     elif _is_flat(input):
         split_flat_dir_kfold(
-            input, output, k, seed, prog_bar if use_tqdm else None,
-            group_prefix, group, move, formats, shuffle,
+            input,
+            output,
+            k,
+            seed,
+            prog_bar if use_tqdm else None,
+            group_prefix,
+            group,
+            move,
+            formats,
+            shuffle,
         )
     else:
         for class_dir in list_dirs(input):
             split_class_dir_kfold(
-                class_dir, output, k, seed, prog_bar if use_tqdm else None,
-                group_prefix, group, move, formats, shuffle,
+                class_dir,
+                output,
+                k,
+                seed,
+                prog_bar if use_tqdm else None,
+                group_prefix,
+                group,
+                move,
+                formats,
+                shuffle,
             )
 
     if use_tqdm:

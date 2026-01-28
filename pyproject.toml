@@ -37,6 +37,7 @@ packages = [
 pytest = "*"
 ruff = "*"
 tqdm = "*"
+pre-commit = "*"
 
 [tool.ruff]
 target-version = "py310"

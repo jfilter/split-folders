@@ -36,7 +36,7 @@ def run():
             " The remaining items get to the training."
             " e.g. for train/val/test `100 100` or for train/val `100`."
             " Set 3 values, e.g. `300 100 100`, to limit the number of training values."
-            ' Use `auto` to auto-compute from the smallest class (requires --oversample).'
+            " Use `auto` to auto-compute from the smallest class (requires --oversample)."
         ),
     )
     parser.add_argument(
@@ -107,8 +107,15 @@ def run():
 
     if args.ratio:
         ratio(
-            args.input, args.output, args.seed, args.ratio,
-            args.group_prefix, args.group, args.move, args.formats, shuffle,
+            args.input,
+            args.output,
+            args.seed,
+            args.ratio,
+            args.group_prefix,
+            args.group,
+            args.move,
+            args.formats,
+            shuffle,
         )
     elif args.fixed:
         if args.fixed == ["auto"]:
@@ -116,16 +123,28 @@ def run():
         else:
             fixed_value = [int(x) for x in args.fixed]
         fixed(
-            args.input, args.output, args.seed, fixed_value,
-            args.oversample, args.group_prefix, args.group, args.move,
-            args.formats, shuffle,
+            args.input,
+            args.output,
+            args.seed,
+            fixed_value,
+            args.oversample,
+            args.group_prefix,
+            args.group,
+            args.move,
+            args.formats,
+            shuffle,
         )
     elif args.kfold:
         kfold(
-            args.input, args.output, args.seed, args.kfold,
-            args.group_prefix, args.group,
+            args.input,
+            args.output,
+            args.seed,
+            args.kfold,
+            args.group_prefix,
+            args.group,
             args.move if args.move else "symlink",
-            args.formats, shuffle,
+            args.formats,
+            shuffle,
         )
     else:
         print("Please specify either your `--ratio`, `--fixed`, or `--kfold` for the split. see -h for more help.")

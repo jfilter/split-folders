@@ -8,9 +8,7 @@ def group_by_prefix(files, len_pairs):
         stem_groups[f.stem].append(f)
     for stem, group in stem_groups.items():
         if len(group) != len_pairs:
-            raise ValueError(
-                f"Expected {len_pairs} files with stem '{stem}', found {len(group)}"
-            )
+            raise ValueError(f"Expected {len_pairs} files with stem '{stem}', found {len(group)}")
     return [tuple(sorted(g)) for g in sorted(stem_groups.values(), key=lambda g: g[0])]
 
 
@@ -41,9 +39,7 @@ def group_by_stem(files):
     sizes = {len(g) for g in stem_groups.values()}
     if len(sizes) != 1:
         size_details = {stem: len(g) for stem, g in stem_groups.items()}
-        raise ValueError(
-            f"All stems must have the same number of files. Found sizes: {size_details}"
-        )
+        raise ValueError(f"All stems must have the same number of files. Found sizes: {size_details}")
 
     group_size = sizes.pop()
     if group_size == 1:
@@ -59,9 +55,7 @@ def setup_sibling_files(input_dir, seed, formats=None, shuffle=True):
 
     type_dirs = sorted(list_dirs(input_dir))
     if len(type_dirs) < 2:
-        raise ValueError(
-            f"group='sibling' requires at least 2 subdirectories, found {len(type_dirs)}."
-        )
+        raise ValueError(f"group='sibling' requires at least 2 subdirectories, found {len(type_dirs)}.")
 
     type_dir_names = [d.name for d in type_dirs]
 
