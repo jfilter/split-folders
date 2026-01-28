@@ -88,6 +88,12 @@ def run():
         default=None,
         help="specify the file format(s) which should be considered for spliting the data e.g. `.png .jpeg .jpg`",
     )
+    parser.add_argument(
+        "--no-shuffle",
+        action="store_true",
+        default=False,
+        help="do not shuffle files before splitting (useful for time series data)",
+    )
 
     args = parser.parse_args()
 
@@ -97,34 +103,29 @@ def run():
     if args.symlink:
         args.move = "symlink"
 
+    shuffle = not args.no_shuffle
+
     if args.ratio:
-        ratio(args.input, args.output, args.seed, args.ratio, args.group_prefix, args.group, args.move, args.formats)
+        ratio(
+            args.input, args.output, args.seed, args.ratio,
+            args.group_prefix, args.group, args.move, args.formats, shuffle,
+        )
     elif args.fixed:
         if args.fixed == ["auto"]:
             fixed_value = "auto"
         else:
             fixed_value = [int(x) for x in args.fixed]
         fixed(
-            args.input,
-            args.output,
-            args.seed,
-            fixed_value,
-            args.oversample,
-            args.group_prefix,
-            args.group,
-            args.move,
-            args.formats,
+            args.input, args.output, args.seed, fixed_value,
+            args.oversample, args.group_prefix, args.group, args.move,
+            args.formats, shuffle,
         )
     elif args.kfold:
         kfold(
-            args.input,
-            args.output,
-            args.seed,
-            args.kfold,
-            args.group_prefix,
-            args.group,
+            args.input, args.output, args.seed, args.kfold,
+            args.group_prefix, args.group,
             args.move if args.move else "symlink",
-            args.formats,
+            args.formats, shuffle,
         )
     else:
         print("Please specify either your `--ratio`, `--fixed`, or `--kfold` for the split. see -h for more help.")

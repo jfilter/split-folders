@@ -52,7 +52,7 @@ def group_by_stem(files):
     return [tuple(sorted(g)) for g in sorted(stem_groups.values(), key=lambda g: g[0])]
 
 
-def setup_sibling_files(input_dir, seed, formats=None):
+def setup_sibling_files(input_dir, seed, formats=None, shuffle=True):
     """Lists type dirs, groups files by stem across all dirs.
     Validates every stem exists in every dir. Returns (type_dir_names, groups)."""
     from .utils import list_dirs, list_files
@@ -86,12 +86,13 @@ def setup_sibling_files(input_dir, seed, formats=None):
                     "All stems must exist in every subdirectory for group='sibling'."
                 )
 
-    # Build groups: each group is a dict mapping type_dir_name -> Path
+    # Build groups: each group is a tuple mapping type_dir_name -> Path
     import random
 
     random.seed(seed)
     sorted_stems = sorted(all_stems)
-    random.shuffle(sorted_stems)
+    if shuffle:
+        random.shuffle(sorted_stems)
 
     groups = []
     for stem in sorted_stems:

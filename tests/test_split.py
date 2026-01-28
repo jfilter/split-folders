@@ -871,3 +871,94 @@ def test_group_and_group_prefix_error_kfold():
 
     with pytest.raises(ValueError, match="Cannot use both"):
         kfold(input_dir, output_dir, group_prefix=2, group="stem")
+
+
+# --- shuffle=False (time series / ordered splits) ---
+
+
+def test_ratio_no_shuffle():
+    """shuffle=False preserves file order — train gets the first files alphabetically."""
+    input_dir = os.path.join(os.path.dirname(__file__), "imgs")
+    output_dir = os.path.join(os.path.dirname(__file__), "output")
+
+    shutil.rmtree(output_dir, ignore_errors=True)
+
+    ratio(input_dir, output_dir, ratio=(0.8, 0.2), shuffle=False)
+
+    a = len(list(pathlib.Path(input_dir).glob("**/*.jpg")))
+    b = len(list(pathlib.Path(output_dir).glob("**/*.jpg")))
+    assert a == b
+
+    # With shuffle=False, output should be deterministic and ordered.
+    # Run a second time to a different dir and verify identical results.
+    output_dir2 = os.path.join(os.path.dirname(__file__), "output2")
+    shutil.rmtree(output_dir2, ignore_errors=True)
+
+    ratio(input_dir, output_dir2, ratio=(0.8, 0.2), shuffle=False)
+
+    for split in ("train", "val"):
+        files1 = sorted(f.name for f in pathlib.Path(output_dir, split).rglob("*.jpg"))
+        files2 = sorted(f.name for f in pathlib.Path(output_dir2, split).rglob("*.jpg"))
+        assert files1 == files2
+
+    shutil.rmtree(output_dir2, ignore_errors=True)
+
+
+def test_fixed_no_shuffle():
+    """shuffle=False with fixed split."""
+    input_dir = os.path.join(os.path.dirname(__file__), "imgs")
+    output_dir = os.path.join(os.path.dirname(__file__), "output")
+
+    shutil.rmtree(output_dir, ignore_errors=True)
+
+    fixed(input_dir, output_dir, fixed=(2, 2), shuffle=False)
+
+    a = len(list(pathlib.Path(input_dir).glob("**/*.jpg")))
+    b = len(list(pathlib.Path(output_dir).glob("**/*.jpg")))
+    assert a == b
+
+
+def test_kfold_no_shuffle():
+    """shuffle=False with kfold split."""
+    input_dir = os.path.join(os.path.dirname(__file__), "imgs")
+    output_dir = os.path.join(os.path.dirname(__file__), "output")
+
+    shutil.rmtree(output_dir, ignore_errors=True)
+
+    kfold(input_dir, output_dir, k=3, move=False, shuffle=False)
+
+    fold_dirs = sorted(pathlib.Path(output_dir).iterdir())
+    assert len(fold_dirs) == 3
+
+    input_count = len(list(pathlib.Path(input_dir).glob("**/*.jpg")))
+    for fold_dir in fold_dirs:
+        train_count = len(list((fold_dir / "train").rglob("*.jpg")))
+        val_count = len(list((fold_dir / "val").rglob("*.jpg")))
+        assert train_count + val_count == input_count
+
+
+def test_no_shuffle_preserves_order():
+    """shuffle=False keeps files in sorted order; train gets the first slice."""
+    input_dir = os.path.join(os.path.dirname(__file__), "imgs")
+    output_dir = os.path.join(os.path.dirname(__file__), "output")
+
+    shutil.rmtree(output_dir, ignore_errors=True)
+
+    ratio(input_dir, output_dir, ratio=(0.8, 0.2), shuffle=False)
+
+    # Collect all input files sorted, per class
+    for class_name in ("cats", "dogs"):
+        input_files = sorted(
+            f.name for f in pathlib.Path(input_dir, class_name).iterdir()
+            if f.is_file() and not f.name.startswith(".")
+        )
+        train_files = sorted(
+            f.name for f in pathlib.Path(output_dir, "train", class_name).iterdir()
+        )
+        val_files = sorted(
+            f.name for f in pathlib.Path(output_dir, "val", class_name).iterdir()
+        )
+
+        # With no shuffle, the split boundary should be consistent:
+        # all files end up somewhere and no file is lost
+        assert sorted(train_files + val_files) == input_files

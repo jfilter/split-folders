@@ -47,7 +47,7 @@ This should get you started to do some serious deep learning on your data. [Read
 
 -   Split files into a training set and a validation set (and optionally a test set).
 -   Works on any file types.
--   The files get shuffled.
+-   The files get shuffled (can be disabled for time series data).
 -   A [seed](https://docs.python.org/3/library/random.html#random.seed) makes splits reproducible.
 -   Allows randomized [oversampling](https://en.wikipedia.org/wiki/Oversampling_and_undersampling_in_data_analysis) for imbalanced datasets.
 -   Optionally group files by prefix or by stem.
@@ -87,14 +87,14 @@ import splitfolders
 # To only split into training and validation set, set a tuple to `ratio`, i.e, `(.8, .2)`.
 splitfolders.ratio("input_folder", output="output",
     seed=1337, ratio=(.8, .1, .1), group_prefix=None, group=None,
-    formats=None, move=False) # default values
+    formats=None, move=False, shuffle=True) # default values
 
 # Split val/test with a fixed number of items, e.g. `(100, 100)`, for each set.
 # To only split into training and validation set, use a single number to `fixed`, i.e., `10`.
 # Set 3 values, e.g. `(300, 100, 100)`, to limit the number of training values.
 splitfolders.fixed("input_folder", output="output",
     seed=1337, fixed=(100, 100), oversample=False, group_prefix=None, group=None,
-    formats=None, move=False) # default values
+    formats=None, move=False, shuffle=True) # default values
 
 # Use `fixed="auto"` with oversampling to auto-compute the val size from the smallest class.
 # Allocates ~20% of the smallest class to validation, rest to training.
@@ -106,7 +106,11 @@ splitfolders.fixed("input_folder", output="output",
 # Uses symlinks by default to avoid k× disk usage.
 splitfolders.kfold("input_folder", output="output",
     seed=1337, k=5, group_prefix=None, group=None,
-    formats=None, move="symlink") # default values
+    formats=None, move="symlink", shuffle=True) # default values
+
+# Split without shuffling (e.g. for time series data).
+splitfolders.ratio("input_folder", output="output",
+    ratio=(.8, .1, .1), shuffle=False)
 ```
 
 ### Grouping files
@@ -215,7 +219,7 @@ Set
 
 ```
 Usage:
-    splitfolders [--output] [--ratio] [--fixed] [--kfold] [--seed] [--oversample] [--group_prefix] [--group] [--formats] [--move] folder_with_images
+    splitfolders [--output] [--ratio] [--fixed] [--kfold] [--seed] [--oversample] [--group_prefix] [--group] [--formats] [--move] [--no-shuffle] folder_with_images
 Options:
     --output        path to the output folder. defaults to `output`. Get created if non-existent.
     --ratio         the ratio to split. e.g. for train/val/test `.8 .1 .1 --` or for train/val `.8 .2 --`.
@@ -231,6 +235,7 @@ Options:
     --formats       split the files based on specified extension(s)
     --move          move the files instead of copying
     --symlink       symlink(create shortcut) the files instead of copying
+    --no-shuffle    do not shuffle files before splitting (useful for time series data)
 Example:
     splitfolders --ratio .8 .1 .1 -- folder_with_images
     splitfolders --kfold 5 folder_with_images
