@@ -1,6 +1,6 @@
 [project]
 name = "split-folders"
-version = "0.5.1"
+version = "0.6.0"
 description = "Split folders with files (e.g. images) into training, validation and test (dataset) folders."
 readme = "README.md"
 license = "MIT"
