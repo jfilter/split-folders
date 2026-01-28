@@ -56,13 +56,19 @@ def run():
         default=None,
         help="split files into equally-sized groups based on their prefix",
     )
-    group = parser.add_mutually_exclusive_group()
-    group.add_argument(
+    parser.add_argument(
+        "--group",
+        type=str,
+        default=None,
+        help="grouping strategy: 'stem' or 'sibling'",
+    )
+    move_group = parser.add_mutually_exclusive_group()
+    move_group.add_argument(
         "--move",
         action="store_true",
         help="move the files instead of copying",
     )
-    group.add_argument(
+    move_group.add_argument(
         "--symlink",
         action="store_true",
         help="symlink(create shortcut) the files instead of copying",
@@ -85,11 +91,14 @@ def run():
 
     args = parser.parse_args()
 
+    if args.group_prefix is not None and args.group is not None:
+        parser.error("--group_prefix and --group are mutually exclusive.")
+
     if args.symlink:
         args.move = "symlink"
 
     if args.ratio:
-        ratio(args.input, args.output, args.seed, args.ratio, args.group_prefix, args.move, args.formats)
+        ratio(args.input, args.output, args.seed, args.ratio, args.group_prefix, args.group, args.move, args.formats)
     elif args.fixed:
         if args.fixed == ["auto"]:
             fixed_value = "auto"
@@ -102,6 +111,7 @@ def run():
             fixed_value,
             args.oversample,
             args.group_prefix,
+            args.group,
             args.move,
             args.formats,
         )
@@ -112,6 +122,7 @@ def run():
             args.seed,
             args.kfold,
             args.group_prefix,
+            args.group,
             args.move if args.move else "symlink",
             args.formats,
         )

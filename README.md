@@ -50,8 +50,10 @@ This should get you started to do some serious deep learning on your data. [Read
 -   The files get shuffled.
 -   A [seed](https://docs.python.org/3/library/random.html#random.seed) makes splits reproducible.
 -   Allows randomized [oversampling](https://en.wikipedia.org/wiki/Oversampling_and_undersampling_in_data_analysis) for imbalanced datasets.
--   Optionally group files by prefix.
+-   Optionally group files by prefix or by stem.
 -   Optionally split files by file format(s).
+-   Split parallel directories (e.g. `images/` + `annotations/`) in lockstep.
+-   Custom grouping via callable.
 -   (Should) work on all operating systems.
 
 ## Install
@@ -84,13 +86,15 @@ import splitfolders
 # Split with a ratio.
 # To only split into training and validation set, set a tuple to `ratio`, i.e, `(.8, .2)`.
 splitfolders.ratio("input_folder", output="output",
-    seed=1337, ratio=(.8, .1, .1), group_prefix=None, formats=None, move=False) # default values
+    seed=1337, ratio=(.8, .1, .1), group_prefix=None, group=None,
+    formats=None, move=False) # default values
 
 # Split val/test with a fixed number of items, e.g. `(100, 100)`, for each set.
 # To only split into training and validation set, use a single number to `fixed`, i.e., `10`.
 # Set 3 values, e.g. `(300, 100, 100)`, to limit the number of training values.
 splitfolders.fixed("input_folder", output="output",
-    seed=1337, fixed=(100, 100), oversample=False, group_prefix=None, formats=None, move=False) # default values
+    seed=1337, fixed=(100, 100), oversample=False, group_prefix=None, group=None,
+    formats=None, move=False) # default values
 
 # Use `fixed="auto"` with oversampling to auto-compute the val size from the smallest class.
 # Allocates ~20% of the smallest class to validation, rest to training.
@@ -101,15 +105,106 @@ splitfolders.fixed("input_folder", output="output",
 # Each fold directory contains train/ and val/ subdirectories.
 # Uses symlinks by default to avoid k× disk usage.
 splitfolders.kfold("input_folder", output="output",
-    seed=1337, k=5, group_prefix=None, formats=None, move="symlink") # default values
+    seed=1337, k=5, group_prefix=None, group=None,
+    formats=None, move="symlink") # default values
 ```
 
-Occasionally, you may have things that comprise more than a single file (e.g. picture (.png) + annotation (.txt)).
-`splitfolders` lets you split files into equally-sized groups based on their prefix.
-Set `group_prefix` to the length of the group (e.g. `2`).
-But now _all_ files should be part of groups.
+### Grouping files
 
-Also, there might be some instances when you have multiple file formats in these folders. Provide one or multiple extension(s) to `formats` for splitting the files in a list (e.g. `formats = ['.jpeg','.png']`).
+When your data has multiple files per sample (e.g. an image and its annotation), you need to keep them together during the split. There are several ways to do this.
+
+#### Group by prefix (`group_prefix`)
+
+The legacy approach. Set `group_prefix` to the number of files per group (e.g. `2` for image + annotation pairs). Files are grouped by their filename stem (the part before the extension). All stems must have exactly `group_prefix` files.
+
+```
+input/cats/
+    img1.jpg   img1.txt
+    img2.jpg   img2.txt
+```
+
+```python
+splitfolders.ratio("input", output="output", group_prefix=2)
+```
+
+#### Group by stem (`group="stem"`)
+
+A simpler alternative to `group_prefix`. Automatically groups files that share the same stem and discovers the group size. No need to specify how many files per group — it just requires every stem to have the same count.
+
+```python
+splitfolders.ratio("input", output="output", group="stem")
+```
+
+If every stem has only one file (e.g. a folder of just `.jpg` files), `group="stem"` behaves identically to no grouping.
+
+#### Group by sibling directories (`group="sibling"`)
+
+For datasets where file types live in **parallel directories** rather than alongside each other:
+
+```
+data/
+    images/
+        im_1.jpg
+        im_2.jpg
+    annotations/
+        im_1.xml
+        im_2.xml
+```
+
+Use `group="sibling"` to split all directories in lockstep, matching files across directories by stem:
+
+```python
+splitfolders.ratio("data", output="output", group="sibling")
+```
+
+This produces:
+
+```
+output/
+    train/
+        images/im_1.jpg
+        annotations/im_1.xml
+    val/
+        images/im_2.jpg
+        annotations/im_2.xml
+```
+
+Requirements:
+- The input must have at least 2 subdirectories.
+- Every stem must exist in every subdirectory.
+- Cannot be combined with `oversample=True`.
+
+#### Custom grouping (`group=callable`)
+
+For advanced use cases, pass any callable that takes a list of `Path` objects and returns a list of tuples:
+
+```python
+def my_grouping(files):
+    # Custom logic to group files
+    # Return: list of tuples of Path objects
+    ...
+
+splitfolders.ratio("input", output="output", group=my_grouping)
+```
+
+This also covers **manifest-based splitting** (#41). For example, if you have a CSV that defines train/test assignments:
+
+```python
+def group_from_manifest(files):
+    manifest = load_my_csv("split_manifest.csv")
+    # return list of tuples grouped according to manifest
+    ...
+
+splitfolders.ratio("input", output="output", group=group_from_manifest)
+```
+
+> **Note:** `group_prefix` and `group` are mutually exclusive — setting both raises a `ValueError`.
+
+### File formats
+
+There might be some instances when you have multiple file formats in these folders. Provide one or multiple extension(s) to `formats` for splitting only certain files (e.g. `formats=['.jpeg', '.png']`).
+
+### Move options
 
 Set
 - `move=True` or `move='move'` if you want to move the files instead of copying.
@@ -120,7 +215,7 @@ Set
 
 ```
 Usage:
-    splitfolders [--output] [--ratio] [--fixed] [--kfold] [--seed] [--oversample] [--group_prefix] [--formats] [--move] folder_with_images
+    splitfolders [--output] [--ratio] [--fixed] [--kfold] [--seed] [--oversample] [--group_prefix] [--group] [--formats] [--move] folder_with_images
 Options:
     --output        path to the output folder. defaults to `output`. Get created if non-existent.
     --ratio         the ratio to split. e.g. for train/val/test `.8 .1 .1 --` or for train/val `.8 .2 --`.
@@ -132,12 +227,15 @@ Options:
     --seed          set seed value for shuffling the items. defaults to 1337.
     --oversample    enable oversampling of imbalanced datasets, works only with --fixed.
     --group_prefix  split files into equally-sized groups based on their prefix
+    --group         grouping strategy: 'stem' or 'sibling' (mutually exclusive with --group_prefix)
     --formats       split the files based on specified extension(s)
     --move          move the files instead of copying
     --symlink       symlink(create shortcut) the files instead of copying
 Example:
     splitfolders --ratio .8 .1 .1 -- folder_with_images
     splitfolders --kfold 5 folder_with_images
+    splitfolders --group stem --ratio .8 .1 .1 -- folder_with_images
+    splitfolders --group sibling --ratio .8 .1 .1 -- data_with_parallel_dirs
 ```
 
 Because of some [Python quirks](https://github.com/jfilter/split-folders/issues/19) you have to prepend ` --` after using `--ratio`.

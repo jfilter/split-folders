@@ -37,6 +37,7 @@ import random
 import shutil
 from pathlib import Path
 
+from .grouping import resolve_grouping, setup_sibling_files
 from .utils import list_dirs, list_files
 
 try:
@@ -104,7 +105,10 @@ def valid_extensions(formats):
         raise ValueError(f"Extensions must start with '.': {invalid_ext}")
 
 
-def ratio(input, output="output", seed=1337, ratio=(0.8, 0.1, 0.1), group_prefix=None, move=False, formats=None):
+def ratio(
+    input, output="output", seed=1337, ratio=(0.8, 0.1, 0.1),
+    group_prefix=None, group=None, move=False, formats=None,
+):
     if not round(sum(ratio), 5) == 1:  # round for floating imprecision
         raise ValueError("The sums of `ratio` is over 1.")
     if len(ratio) not in (2, 3):
@@ -116,20 +120,27 @@ def ratio(input, output="output", seed=1337, ratio=(0.8, 0.1, 0.1), group_prefix
     if use_tqdm:
         prog_bar = tqdm(desc="Copying files", unit=" files")
 
-    for class_dir in list_dirs(input):
-        split_class_dir_ratio(
-            class_dir, output, ratio, seed, prog_bar if use_tqdm else None, group_prefix, move, formats
-        )
+    if group == "sibling":
+        split_sibling_dirs_ratio(input, output, ratio, seed, prog_bar if use_tqdm else None, move, formats)
+    else:
+        for class_dir in list_dirs(input):
+            split_class_dir_ratio(
+                class_dir, output, ratio, seed, prog_bar if use_tqdm else None, group_prefix, group, move, formats
+            )
 
     if use_tqdm:
         prog_bar.close()
 
 
 def fixed(
-    input, output="output", seed=1337, fixed=(100, 100), oversample=False, group_prefix=None, move=False, formats=None
+    input, output="output", seed=1337, fixed=(100, 100), oversample=False,
+    group_prefix=None, group=None, move=False, formats=None,
 ):
     check_input_format(input)
     valid_extensions(formats)
+
+    if group == "sibling" and oversample:
+        raise ValueError("Cannot use `oversample=True` with `group='sibling'` (no classes to balance).")
 
     if fixed == "auto":
         if not oversample:
@@ -141,8 +152,7 @@ def fixed(
         counts = []
         for class_dir in classes_dirs:
             files = list_files(class_dir, formats)
-            if group_prefix is not None:
-                files = group_by_prefix(files, group_prefix)
+            files = resolve_grouping(files, group_prefix, group)
             counts.append(len(files))
         min_count = min(counts)
         fixed = [max(1, min_count // 5)]
@@ -159,12 +169,18 @@ def fixed(
     if use_tqdm:
         prog_bar = tqdm(desc="Copying files", unit=" files")
 
+    if group == "sibling":
+        split_sibling_dirs_fixed(input, output, fixed, seed, prog_bar if use_tqdm else None, move, formats)
+        if use_tqdm:
+            prog_bar.close()
+        return
+
     classes_dirs = list_dirs(input)
     num_items = []
     for class_dir in classes_dirs:
         num_items.append(
             split_class_dir_fixed(
-                class_dir, output, fixed, seed, prog_bar if use_tqdm else None, group_prefix, move, formats
+                class_dir, output, fixed, seed, prog_bar if use_tqdm else None, group_prefix, group, move, formats
             )
         )
 
@@ -184,9 +200,7 @@ def fixed(
         class_name = Path(class_dir).name
         full_path = Path(output) / "train" / class_name
         train_files = list_files(full_path, formats)
-
-        if group_prefix is not None:
-            train_files = group_by_prefix(train_files, group_prefix)
+        train_files = resolve_grouping(train_files, group_prefix, group)
 
         for i in range(num_max_items - num_items):
             f_chosen = random.choice(train_files)
@@ -208,7 +222,7 @@ def fixed(
                     shutil.copy2(str(f_orig), str(f_dest))
 
 
-def kfold(input, output="output", seed=1337, k=5, group_prefix=None, move="symlink", formats=None):
+def kfold(input, output="output", seed=1337, k=5, group_prefix=None, group=None, move="symlink", formats=None):
     if k < 2:
         raise ValueError("`k` must be 2 or greater.")
 
@@ -218,19 +232,25 @@ def kfold(input, output="output", seed=1337, k=5, group_prefix=None, move="symli
     if use_tqdm:
         prog_bar = tqdm(desc="Copying files", unit=" files")
 
-    for class_dir in list_dirs(input):
-        split_class_dir_kfold(class_dir, output, k, seed, prog_bar if use_tqdm else None, group_prefix, move, formats)
+    if group == "sibling":
+        split_sibling_dirs_kfold(input, output, k, seed, prog_bar if use_tqdm else None, move, formats)
+    else:
+        for class_dir in list_dirs(input):
+            split_class_dir_kfold(
+                class_dir, output, k, seed, prog_bar if use_tqdm else None,
+                group_prefix, group, move, formats,
+            )
 
     if use_tqdm:
         prog_bar.close()
 
 
-def split_class_dir_kfold(class_dir, output, k, seed, prog_bar, group_prefix, move, formats):
+def split_class_dir_kfold(class_dir, output, k, seed, prog_bar, group_prefix, group, move, formats):
     """
     Splits a class folder into k folds for cross-validation.
     Each fold directory gets train/ and val/ subdirectories.
     """
-    files = setup_files(class_dir, seed, group_prefix, formats)
+    files = setup_files(class_dir, seed, group_prefix, group, formats)
 
     # Partition files into k roughly equal chunks
     fold_size = len(files) // k
@@ -251,58 +271,25 @@ def split_class_dir_kfold(class_dir, output, k, seed, prog_bar, group_prefix, mo
         copy_files(li, class_dir, fold_output, prog_bar, move)
 
 
-def group_by_prefix(files, len_pairs):
+def setup_files(class_dir, seed, group_prefix=None, group=None, formats=None):
     """
-    Split files into groups of len `len_pairs` based on their prefix.
-    """
-    results = []
-    results_set = set()  # for fast lookup, only file names
-    for f in files:
-        if f.name in results_set:
-            continue
-        f_sub = f.name
-        for _ in range(len(f_sub)):
-            matches = [x for x in files if x.name not in results_set and x.name.startswith(f_sub) and f.name != x.name]
-            if len(matches) == len_pairs - 1:
-                results.append((f, *matches))
-                results_set.update((f.name, *[x.name for x in matches]))
-                break
-            elif len(matches) < len_pairs - 1:
-                f_sub = f_sub[:-1]
-            else:
-                raise ValueError(
-                    f"The length of pairs has to be equal. Coudn't find {len_pairs - 1}"
-                    f" matches for {f}. Found {len(matches)} matches."
-                )
-        else:
-            raise ValueError(f"No adequate matches found for {f}.")
-
-    if len(results_set) != len(files):
-        raise ValueError(f"Could not find enough matches ({len(results_set)}) for all files ({len(files)})")
-    return results
-
-
-def setup_files(class_dir, seed, group_prefix=None, formats=None):
-    """
-    Returns shuffeld list of filenames
+    Returns shuffled list of filenames
     """
     random.seed(seed)  # make sure its reproducible
 
     files = list_files(class_dir, formats)
-
-    if group_prefix is not None:
-        files = group_by_prefix(files, group_prefix)
+    files = resolve_grouping(files, group_prefix, group)
 
     files.sort()
     random.shuffle(files)
     return files
 
 
-def split_class_dir_ratio(class_dir, output, ratio, seed, prog_bar, group_prefix, move, formats):
+def split_class_dir_ratio(class_dir, output, ratio, seed, prog_bar, group_prefix, group, move, formats):
     """
     Splits a class folder
     """
-    files = setup_files(class_dir, seed, group_prefix, formats)
+    files = setup_files(class_dir, seed, group_prefix, group, formats)
 
     # the data was shuffled already
     split_train_idx = int(ratio[0] * len(files))
@@ -312,11 +299,11 @@ def split_class_dir_ratio(class_dir, output, ratio, seed, prog_bar, group_prefix
     copy_files(li, class_dir, output, prog_bar, move)
 
 
-def split_class_dir_fixed(class_dir, output, fixed, seed, prog_bar, group_prefix, move, formats):
+def split_class_dir_fixed(class_dir, output, fixed, seed, prog_bar, group_prefix, group, move, formats):
     """
     Splits a class folder and returns the total number of files
     """
-    files = setup_files(class_dir, seed, group_prefix, formats)
+    files = setup_files(class_dir, seed, group_prefix, group, formats)
 
     if not len(files) >= sum(fixed):
         raise ValueError(
@@ -383,3 +370,76 @@ def copy_files(files_type, class_dir, output, prog_bar, move):
                     copy_fn(x, full_path)
             else:
                 copy_fn(f, full_path)
+
+
+def copy_sibling_files(files_type, type_dir_names, output, prog_bar, move):
+    """
+    Copies files in sibling mode: each group is a tuple of files across type dirs.
+    Output structure: output/split_name/type_dir_name/filename
+    """
+    copy_fn = _get_copy_fn(move)
+
+    for files, folder_type in files_type:
+        for group in files:
+            if prog_bar is not None:
+                prog_bar.update()
+            for type_dir_name, f in zip(type_dir_names, group):
+                full_path = Path(output) / folder_type / type_dir_name
+                full_path.mkdir(parents=True, exist_ok=True)
+                copy_fn(f, full_path)
+
+
+def split_sibling_dirs_ratio(input_dir, output, ratio, seed, prog_bar, move, formats):
+    type_dir_names, groups = setup_sibling_files(input_dir, seed, formats)
+
+    split_train_idx = int(ratio[0] * len(groups))
+    split_val_idx = split_train_idx + int(ratio[1] * len(groups))
+
+    li = split_files(groups, split_train_idx, split_val_idx, len(ratio) == 3)
+    copy_sibling_files(li, type_dir_names, output, prog_bar, move)
+
+
+def split_sibling_dirs_fixed(input_dir, output, fixed, seed, prog_bar, move, formats):
+    type_dir_names, groups = setup_sibling_files(input_dir, seed, formats)
+
+    if not len(groups) >= sum(fixed):
+        raise ValueError(
+            f"Not enough file groups for the requested fixed split."
+            f" There are only {len(groups)} groups but fixed={fixed} requires at least {sum(fixed)}."
+        )
+
+    if len(fixed) <= 2:
+        split_train_idx = len(groups) - sum(fixed)
+        split_val_idx = split_train_idx + fixed[0]
+    else:
+        split_train_idx = fixed[0]
+        split_val_idx = fixed[0] + fixed[1]
+
+    li = split_files(
+        groups,
+        split_train_idx,
+        split_val_idx,
+        len(fixed) >= 2,
+        None if len(fixed) != 3 else fixed[2],
+    )
+    copy_sibling_files(li, type_dir_names, output, prog_bar, move)
+
+
+def split_sibling_dirs_kfold(input_dir, output, k, seed, prog_bar, move, formats):
+    type_dir_names, groups = setup_sibling_files(input_dir, seed, formats)
+
+    fold_size = len(groups) // k
+    remainder = len(groups) % k
+    partitions = []
+    idx = 0
+    for i in range(k):
+        size = fold_size + (1 if i < remainder else 0)
+        partitions.append(groups[idx : idx + size])
+        idx += size
+
+    for i in range(k):
+        val_files = partitions[i]
+        train_files = [f for j, part in enumerate(partitions) if j != i for f in part]
+        fold_output = str(Path(output) / f"fold_{i + 1}")
+        li = [(train_files, "train"), (val_files, "val")]
+        copy_sibling_files(li, type_dir_names, fold_output, prog_bar, move)

@@ -476,3 +476,398 @@ def test_kfold_invalid():
 
     with pytest.raises(ValueError):
         kfold(input_dir, output_dir, k=1)
+
+
+# --- Phase 1: group_by_prefix collision fix ---
+
+
+def test_group_by_prefix_no_collision():
+    """Regression test: group_prefix=2 with collision-prone filenames succeeds."""
+    input_dir = os.path.join(os.path.dirname(__file__), "imgs_prefix_collision")
+    output_dir = os.path.join(os.path.dirname(__file__), "output")
+
+    shutil.rmtree(output_dir, ignore_errors=True)
+
+    ratio(input_dir, output_dir, group_prefix=2)
+
+    # ensure the number of files is the same
+    a = len(list(pathlib.Path(input_dir).glob("**/*.jpg")))
+    b = len(list(pathlib.Path(output_dir).glob("**/*.jpg")))
+    assert a == b
+
+    a = len(list(pathlib.Path(input_dir).glob("**/*.txt")))
+    b = len(list(pathlib.Path(output_dir).glob("**/*.txt")))
+    assert a == b
+
+
+# --- Phase 2: group parameter ---
+
+
+def test_group_by_stem():
+    """group='stem' with imgs_texts produces same result as group_prefix=2."""
+    input_dir = os.path.join(os.path.dirname(__file__), "imgs_texts")
+    output_dir = os.path.join(os.path.dirname(__file__), "output")
+
+    shutil.rmtree(output_dir, ignore_errors=True)
+
+    ratio(input_dir, output_dir, group="stem")
+
+    a = len(list(pathlib.Path(input_dir).glob("**/*.jpg")))
+    b = len(list(pathlib.Path(output_dir).glob("**/*.jpg")))
+    assert a == b
+
+    a = len(list(pathlib.Path(input_dir).glob("**/*.txt")))
+    b = len(list(pathlib.Path(output_dir).glob("**/*.txt")))
+    assert a == b
+
+
+def test_group_by_stem_singles():
+    """group='stem' with imgs (only .jpg) works like no grouping."""
+    input_dir = os.path.join(os.path.dirname(__file__), "imgs")
+    output_dir = os.path.join(os.path.dirname(__file__), "output")
+
+    shutil.rmtree(output_dir, ignore_errors=True)
+
+    ratio(input_dir, output_dir, group="stem")
+
+    a = len(list(pathlib.Path(input_dir).glob("**/*.jpg")))
+    b = len(list(pathlib.Path(output_dir).glob("**/*.jpg")))
+    assert a == b
+
+
+def test_group_by_stem_uneven_error():
+    """Mismatched stem counts raise ValueError."""
+    input_dir = os.path.join(os.path.dirname(__file__), "imgs_texts_error_1")
+    output_dir = os.path.join(os.path.dirname(__file__), "output")
+
+    shutil.rmtree(output_dir, ignore_errors=True)
+
+    with pytest.raises(ValueError, match="same number of files"):
+        ratio(input_dir, output_dir, group="stem")
+
+
+def test_group_callable():
+    """group=callable works (identity grouping wrapping each file in a 1-tuple)."""
+    input_dir = os.path.join(os.path.dirname(__file__), "imgs")
+    output_dir = os.path.join(os.path.dirname(__file__), "output")
+
+    shutil.rmtree(output_dir, ignore_errors=True)
+
+    ratio(input_dir, output_dir, group=lambda files: [(f,) for f in files])
+
+    a = len(list(pathlib.Path(input_dir).glob("**/*.jpg")))
+    b = len(list(pathlib.Path(output_dir).glob("**/*.jpg")))
+    assert a == b
+
+
+def test_group_and_group_prefix_error():
+    """Both group and group_prefix set raises ValueError."""
+    input_dir = os.path.join(os.path.dirname(__file__), "imgs_texts")
+    output_dir = os.path.join(os.path.dirname(__file__), "output")
+
+    with pytest.raises(ValueError, match="Cannot use both"):
+        ratio(input_dir, output_dir, group_prefix=2, group="stem")
+
+
+# --- Phase 3: sibling mode ---
+
+
+def test_sibling_ratio():
+    """Splits by stem, all output stems have both .jpg and .xml."""
+    input_dir = os.path.join(os.path.dirname(__file__), "imgs_sibling")
+    output_dir = os.path.join(os.path.dirname(__file__), "output")
+
+    shutil.rmtree(output_dir, ignore_errors=True)
+
+    ratio(input_dir, output_dir, group="sibling")
+
+    input_jpgs = len(list(pathlib.Path(input_dir).glob("**/*.jpg")))
+    output_jpgs = len(list(pathlib.Path(output_dir).glob("**/*.jpg")))
+    assert input_jpgs == output_jpgs
+
+    input_xmls = len(list(pathlib.Path(input_dir).glob("**/*.xml")))
+    output_xmls = len(list(pathlib.Path(output_dir).glob("**/*.xml")))
+    assert input_xmls == output_xmls
+
+
+def test_sibling_fixed():
+    """Fixed split in sibling mode."""
+    input_dir = os.path.join(os.path.dirname(__file__), "imgs_sibling")
+    output_dir = os.path.join(os.path.dirname(__file__), "output")
+
+    shutil.rmtree(output_dir, ignore_errors=True)
+
+    fixed(input_dir, output_dir, fixed=(1, 1), group="sibling")
+
+    input_jpgs = len(list(pathlib.Path(input_dir).glob("**/*.jpg")))
+    output_jpgs = len(list(pathlib.Path(output_dir).glob("**/*.jpg")))
+    assert input_jpgs == output_jpgs
+
+    input_xmls = len(list(pathlib.Path(input_dir).glob("**/*.xml")))
+    output_xmls = len(list(pathlib.Path(output_dir).glob("**/*.xml")))
+    assert input_xmls == output_xmls
+
+
+def test_sibling_kfold():
+    """K-fold in sibling mode."""
+    input_dir = os.path.join(os.path.dirname(__file__), "imgs_sibling")
+    output_dir = os.path.join(os.path.dirname(__file__), "output")
+
+    shutil.rmtree(output_dir, ignore_errors=True)
+
+    kfold(input_dir, output_dir, k=3, group="sibling", move=False)
+
+    fold_dirs = sorted(pathlib.Path(output_dir).iterdir())
+    assert len(fold_dirs) == 3
+
+    input_jpgs = len(list(pathlib.Path(input_dir).glob("**/*.jpg")))
+
+    for fold_dir in fold_dirs:
+        train_jpgs = len(list((fold_dir / "train").rglob("*.jpg")))
+        val_jpgs = len(list((fold_dir / "val").rglob("*.jpg")))
+        assert train_jpgs + val_jpgs == input_jpgs
+
+
+def test_sibling_output_structure():
+    """Output has train/images/, train/annotations/ (type dirs, not classes)."""
+    input_dir = os.path.join(os.path.dirname(__file__), "imgs_sibling")
+    output_dir = os.path.join(os.path.dirname(__file__), "output")
+
+    shutil.rmtree(output_dir, ignore_errors=True)
+
+    ratio(input_dir, output_dir, group="sibling")
+
+    output_path = pathlib.Path(output_dir)
+    # Check that type dirs exist in train
+    assert (output_path / "train" / "images").is_dir()
+    assert (output_path / "train" / "annotations").is_dir()
+
+
+def test_sibling_missing_file_error():
+    """Missing stem in one dir raises ValueError."""
+    input_dir = os.path.join(os.path.dirname(__file__), "imgs_sibling_missing")
+    output_dir = os.path.join(os.path.dirname(__file__), "output")
+
+    shutil.rmtree(output_dir, ignore_errors=True)
+
+    with pytest.raises(ValueError, match="missing"):
+        ratio(input_dir, output_dir, group="sibling")
+
+
+def test_sibling_oversample_error():
+    """oversample=True + group='sibling' raises ValueError."""
+    input_dir = os.path.join(os.path.dirname(__file__), "imgs_sibling")
+    output_dir = os.path.join(os.path.dirname(__file__), "output")
+
+    with pytest.raises(ValueError, match="Cannot use.*oversample.*sibling"):
+        fixed(input_dir, output_dir, fixed=(1, 1), oversample=True, group="sibling")
+
+
+# --- Coverage: split mode × grouping mode gaps ---
+
+
+def test_fixed_group_stem():
+    """fixed + group='stem' with paired files."""
+    input_dir = os.path.join(os.path.dirname(__file__), "imgs_texts")
+    output_dir = os.path.join(os.path.dirname(__file__), "output")
+
+    shutil.rmtree(output_dir, ignore_errors=True)
+
+    fixed(input_dir, output_dir, fixed=(1, 1), group="stem")
+
+    a = len(list(pathlib.Path(input_dir).glob("**/*.jpg")))
+    b = len(list(pathlib.Path(output_dir).glob("**/*.jpg")))
+    assert a == b
+
+    a = len(list(pathlib.Path(input_dir).glob("**/*.txt")))
+    b = len(list(pathlib.Path(output_dir).glob("**/*.txt")))
+    assert a == b
+
+
+def test_kfold_group_prefix():
+    """kfold + group_prefix with paired files."""
+    input_dir = os.path.join(os.path.dirname(__file__), "imgs_texts")
+    output_dir = os.path.join(os.path.dirname(__file__), "output")
+
+    shutil.rmtree(output_dir, ignore_errors=True)
+
+    kfold(input_dir, output_dir, k=3, group_prefix=2, move=False)
+
+    fold_dirs = sorted(pathlib.Path(output_dir).iterdir())
+    assert len(fold_dirs) == 3
+
+    input_jpgs = len(list(pathlib.Path(input_dir).glob("**/*.jpg")))
+    for fold_dir in fold_dirs:
+        train_jpgs = len(list((fold_dir / "train").rglob("*.jpg")))
+        val_jpgs = len(list((fold_dir / "val").rglob("*.jpg")))
+        assert train_jpgs + val_jpgs == input_jpgs
+
+
+def test_kfold_group_stem():
+    """kfold + group='stem' with paired files."""
+    input_dir = os.path.join(os.path.dirname(__file__), "imgs_texts")
+    output_dir = os.path.join(os.path.dirname(__file__), "output")
+
+    shutil.rmtree(output_dir, ignore_errors=True)
+
+    kfold(input_dir, output_dir, k=3, group="stem", move=False)
+
+    fold_dirs = sorted(pathlib.Path(output_dir).iterdir())
+    assert len(fold_dirs) == 3
+
+    input_jpgs = len(list(pathlib.Path(input_dir).glob("**/*.jpg")))
+    for fold_dir in fold_dirs:
+        train_jpgs = len(list((fold_dir / "train").rglob("*.jpg")))
+        val_jpgs = len(list((fold_dir / "val").rglob("*.jpg")))
+        assert train_jpgs + val_jpgs == input_jpgs
+
+
+def test_fixed_group_callable():
+    """fixed + group=callable."""
+    input_dir = os.path.join(os.path.dirname(__file__), "imgs")
+    output_dir = os.path.join(os.path.dirname(__file__), "output")
+
+    shutil.rmtree(output_dir, ignore_errors=True)
+
+    fixed(input_dir, output_dir, fixed=(2, 2), group=lambda files: [(f,) for f in files])
+
+    a = len(list(pathlib.Path(input_dir).glob("**/*.jpg")))
+    b = len(list(pathlib.Path(output_dir).glob("**/*.jpg")))
+    assert a == b
+
+
+def test_kfold_group_callable():
+    """kfold + group=callable."""
+    input_dir = os.path.join(os.path.dirname(__file__), "imgs")
+    output_dir = os.path.join(os.path.dirname(__file__), "output")
+
+    shutil.rmtree(output_dir, ignore_errors=True)
+
+    kfold(input_dir, output_dir, k=3, group=lambda files: [(f,) for f in files], move=False)
+
+    fold_dirs = sorted(pathlib.Path(output_dir).iterdir())
+    assert len(fold_dirs) == 3
+
+
+# --- Coverage: oversample × grouping gaps ---
+
+
+def test_fixed_oversample_group_stem():
+    """oversample + fixed + group='stem'."""
+    input_dir = os.path.join(os.path.dirname(__file__), "imgs_texts")
+    output_dir = os.path.join(os.path.dirname(__file__), "output")
+
+    shutil.rmtree(output_dir, ignore_errors=True)
+
+    fixed(input_dir, output_dir, fixed=(1, 1), oversample=True, group="stem")
+
+    a = len(list(pathlib.Path(input_dir).glob("**/*.jpg")))
+    b = len(list(pathlib.Path(output_dir).glob("**/*.jpg")))
+    assert a != b
+
+    a = len(list(pathlib.Path(input_dir).glob("**/*.txt")))
+    b = len(list(pathlib.Path(output_dir).glob("**/*.txt")))
+    assert a != b
+
+
+# --- Coverage: formats × grouping gaps ---
+
+
+def test_ratio_formats_group_stem():
+    """formats + group='stem' — only .jpg selected, stem grouping becomes singles."""
+    input_dir = os.path.join(os.path.dirname(__file__), "imgs_texts")
+    output_dir = os.path.join(os.path.dirname(__file__), "output")
+
+    shutil.rmtree(output_dir, ignore_errors=True)
+
+    ratio(input_dir, output_dir, group="stem", formats=[".jpg"])
+
+    jpg_count = len(list(pathlib.Path(output_dir).glob("**/*.jpg")))
+    txt_count = len(list(pathlib.Path(output_dir).glob("**/*.txt")))
+    assert jpg_count > 0
+    assert txt_count == 0
+
+
+def test_ratio_formats_group_prefix():
+    """formats + group_prefix — only .jpg selected with group_prefix=1."""
+    input_dir = os.path.join(os.path.dirname(__file__), "imgs_texts")
+    output_dir = os.path.join(os.path.dirname(__file__), "output")
+
+    shutil.rmtree(output_dir, ignore_errors=True)
+
+    ratio(input_dir, output_dir, group_prefix=1, formats=[".jpg"])
+
+    jpg_count = len(list(pathlib.Path(output_dir).glob("**/*.jpg")))
+    txt_count = len(list(pathlib.Path(output_dir).glob("**/*.txt")))
+    assert jpg_count > 0
+    assert txt_count == 0
+
+
+def test_sibling_formats_mismatch_error():
+    """formats filtering out one sibling dir's files entirely raises ValueError."""
+    input_dir = os.path.join(os.path.dirname(__file__), "imgs_sibling")
+    output_dir = os.path.join(os.path.dirname(__file__), "output")
+
+    shutil.rmtree(output_dir, ignore_errors=True)
+
+    # .jpg filter excludes annotations/*.xml, so stems are "missing"
+    with pytest.raises(ValueError, match="missing"):
+        ratio(input_dir, output_dir, group="sibling", formats=[".jpg"])
+
+
+# --- Coverage: symlink × grouping gaps ---
+
+
+def test_ratio_symlink_group_stem():
+    """symlink + group='stem'."""
+    input_dir = os.path.join(os.path.dirname(__file__), "imgs_texts")
+    output_dir = os.path.join(os.path.dirname(__file__), "output")
+
+    shutil.rmtree(output_dir, ignore_errors=True)
+
+    ratio(input_dir, output_dir, group="stem", move="symlink")
+
+    a = len(list(pathlib.Path(input_dir).glob("**/*.jpg")))
+    b = len(list(pathlib.Path(output_dir).glob("**/*.jpg")))
+    assert a == b
+
+    for f in pathlib.Path(output_dir).rglob("*.jpg"):
+        assert f.is_symlink()
+
+
+def test_sibling_symlink():
+    """symlink + group='sibling'."""
+    input_dir = os.path.join(os.path.dirname(__file__), "imgs_sibling")
+    output_dir = os.path.join(os.path.dirname(__file__), "output")
+
+    shutil.rmtree(output_dir, ignore_errors=True)
+
+    ratio(input_dir, output_dir, group="sibling", move="symlink")
+
+    a = len(list(pathlib.Path(input_dir).glob("**/*.jpg")))
+    b = len(list(pathlib.Path(output_dir).glob("**/*.jpg")))
+    assert a == b
+
+    for f in pathlib.Path(output_dir).rglob("*.jpg"):
+        assert f.is_symlink()
+
+
+# --- Coverage: mutual exclusivity across all split modes ---
+
+
+def test_group_and_group_prefix_error_fixed():
+    """Both group and group_prefix set in fixed() raises ValueError."""
+    input_dir = os.path.join(os.path.dirname(__file__), "imgs_texts")
+    output_dir = os.path.join(os.path.dirname(__file__), "output")
+
+    with pytest.raises(ValueError, match="Cannot use both"):
+        fixed(input_dir, output_dir, fixed=(1, 1), group_prefix=2, group="stem")
+
+
+def test_group_and_group_prefix_error_kfold():
+    """Both group and group_prefix set in kfold() raises ValueError."""
+    input_dir = os.path.join(os.path.dirname(__file__), "imgs_texts")
+    output_dir = os.path.join(os.path.dirname(__file__), "output")
+
+    with pytest.raises(ValueError, match="Cannot use both"):
+        kfold(input_dir, output_dir, group_prefix=2, group="stem")
