@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.1] - 2026-01-28
+
+### Added
+
+- Ruff linting in CI (`ruff check` + `ruff format --check`).
+- Pre-commit hooks with ruff for local development.
+- `pre-commit` added to dev dependencies.
+
+### Fixed
+
+- Build Status badge in README (updated to new GitHub Actions format).
+
 ## [0.6.0] - 2026-01-28
 
 ### Added
@@ -141,7 +153,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Seed for reproducible splits.
 - CLI interface.
 
-[Unreleased]: https://github.com/jfilter/split-folders/compare/0.6.0...HEAD
+[Unreleased]: https://github.com/jfilter/split-folders/compare/0.6.1...HEAD
+[0.6.1]: https://github.com/jfilter/split-folders/compare/0.6.0...0.6.1
 [0.6.0]: https://github.com/jfilter/split-folders/compare/0.5.1...0.6.0
 [0.5.1]: https://github.com/jfilter/split-folders/compare/0.5.0...0.5.1
 [0.5.0]: https://github.com/jfilter/split-folders/compare/0.4.3...0.5.0
