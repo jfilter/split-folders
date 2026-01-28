@@ -2,7 +2,7 @@
 
 Split folders with files (e.g. images) into **train**, **validation** and **test** (dataset) folders.
 
-The input folder should have the following format:
+The input folder should have the following format (with class subdirectories):
 
 ```
 input/
@@ -13,6 +13,15 @@ input/
     class2/
         imgWhatever.jpg
         ...
+    ...
+```
+
+Or a **flat directory** without class subdirectories:
+
+```
+input/
+    file1.jpg
+    file2.jpg
     ...
 ```
 
@@ -47,6 +56,7 @@ This should get you started to do some serious deep learning on your data. [Read
 
 -   Split files into a training set and a validation set (and optionally a test set).
 -   Works on any file types.
+-   Supports both class-based directory structures and flat directories.
 -   The files get shuffled (can be disabled for time series data).
 -   A [seed](https://docs.python.org/3/library/random.html#random.seed) makes splits reproducible.
 -   Allows randomized [oversampling](https://en.wikipedia.org/wiki/Oversampling_and_undersampling_in_data_analysis) for imbalanced datasets.
@@ -112,6 +122,28 @@ splitfolders.kfold("input_folder", output="output",
 splitfolders.ratio("input_folder", output="output",
     ratio=(.8, .1, .1), shuffle=False)
 ```
+
+### Flat directories
+
+If your input folder contains files directly (no class subdirectories), `splitfolders` auto-detects this and splits files into `train/`, `val/`, `test/` without creating class subfolders:
+
+```python
+# input_folder/ contains file1.jpg, file2.jpg, ... (no subdirs)
+splitfolders.ratio("input_folder", output="output", ratio=(.8, .1, .1))
+```
+
+Output:
+```
+output/
+    train/
+        file1.jpg
+        ...
+    val/
+        file5.jpg
+        ...
+```
+
+> **Note:** Oversampling is not available with flat directories (there are no classes to balance).
 
 ### Grouping files
 

@@ -962,3 +962,84 @@ def test_no_shuffle_preserves_order():
         # With no shuffle, the split boundary should be consistent:
         # all files end up somewhere and no file is lost
         assert sorted(train_files + val_files) == input_files
+
+
+# --- Flat directory (no class subdirectories) ---
+
+
+def test_flat_ratio():
+    """ratio() on a flat directory (no subdirs) puts files directly into train/val."""
+    input_dir = os.path.join(os.path.dirname(__file__), "imgs_flat")
+    output_dir = os.path.join(os.path.dirname(__file__), "output")
+
+    shutil.rmtree(output_dir, ignore_errors=True)
+
+    ratio(input_dir, output_dir, ratio=(0.8, 0.2))
+
+    a = len(list(pathlib.Path(input_dir).glob("*.jpg")))
+    b = len(list(pathlib.Path(output_dir).rglob("*.jpg")))
+    assert a == b
+
+    # Files should be directly in train/ and val/, not in a class subdir
+    assert pathlib.Path(output_dir, "train").is_dir()
+    assert pathlib.Path(output_dir, "val").is_dir()
+    train_files = list(pathlib.Path(output_dir, "train").glob("*.jpg"))
+    val_files = list(pathlib.Path(output_dir, "val").glob("*.jpg"))
+    assert len(train_files) + len(val_files) == a
+
+
+def test_flat_fixed():
+    """fixed() on a flat directory."""
+    input_dir = os.path.join(os.path.dirname(__file__), "imgs_flat")
+    output_dir = os.path.join(os.path.dirname(__file__), "output")
+
+    shutil.rmtree(output_dir, ignore_errors=True)
+
+    fixed(input_dir, output_dir, fixed=(2, 2))
+
+    a = len(list(pathlib.Path(input_dir).glob("*.jpg")))
+    b = len(list(pathlib.Path(output_dir).rglob("*.jpg")))
+    assert a == b
+
+
+def test_flat_kfold():
+    """kfold() on a flat directory."""
+    input_dir = os.path.join(os.path.dirname(__file__), "imgs_flat")
+    output_dir = os.path.join(os.path.dirname(__file__), "output")
+
+    shutil.rmtree(output_dir, ignore_errors=True)
+
+    kfold(input_dir, output_dir, k=3, move=False)
+
+    fold_dirs = sorted(pathlib.Path(output_dir).iterdir())
+    assert len(fold_dirs) == 3
+
+    input_count = len(list(pathlib.Path(input_dir).glob("*.jpg")))
+    for fold_dir in fold_dirs:
+        train_count = len(list((fold_dir / "train").rglob("*.jpg")))
+        val_count = len(list((fold_dir / "val").rglob("*.jpg")))
+        assert train_count + val_count == input_count
+
+
+def test_flat_no_class_subdirs_in_output():
+    """Flat input should not create class subdirectories in output."""
+    input_dir = os.path.join(os.path.dirname(__file__), "imgs_flat")
+    output_dir = os.path.join(os.path.dirname(__file__), "output")
+
+    shutil.rmtree(output_dir, ignore_errors=True)
+
+    ratio(input_dir, output_dir, ratio=(0.8, 0.2))
+
+    # train/ should contain files directly, not subdirectories
+    train_path = pathlib.Path(output_dir, "train")
+    subdirs = [d for d in train_path.iterdir() if d.is_dir()]
+    assert len(subdirs) == 0
+
+
+def test_flat_oversample_error():
+    """oversample=True with flat directory raises ValueError."""
+    input_dir = os.path.join(os.path.dirname(__file__), "imgs_flat")
+    output_dir = os.path.join(os.path.dirname(__file__), "output")
+
+    with pytest.raises(ValueError, match="flat input directory"):
+        fixed(input_dir, output_dir, fixed=(2, 2), oversample=True)
