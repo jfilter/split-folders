@@ -38,3 +38,21 @@ The version string lives in two places and **both must be updated**:
    ```
 
    This requires PyPI credentials configured locally via `poetry config pypi-token.pypi <token>`.
+
+6. **Create a GitHub release:**
+
+   ```bash
+   gh release create X.Y.Z --title "X.Y.Z" --notes "$(cat <<'EOF'
+   ### Added
+   - ...
+
+   ### Fixed
+   - ...
+
+   ### Changed
+   - ...
+   EOF
+   )"
+   ```
+
+   Copy the release notes from `CHANGELOG.md` for the version being released.
